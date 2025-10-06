@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Dashboard - All Results</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 40px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #4a4a4a;
+        }
+        #dashboard-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .group-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 250px;
+        }
+        .group-card h3 {
+            margin-top: 0;
+            color: #3498db;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .group-card ul {
+            list-style: none;
+            padding: 0;
+        }
+        .group-card li {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .group-card li:last-child {
+            border-bottom: none;
+        }
+        .group-card .count {
+            font-weight: bold;
+        }
+        .no-results {
+            font-size: 1.2em;
+            color: #777;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Teacher Dashboard</h1>
+    <h2>Combined Results from All Groups (Total Spins: {{ total_spins }})</h2>
+
+    <div id="dashboard-container">
+        {% if summary %}
+            {% for group_id, results in summary.items()|sort %}
+                <div class="group-card">
+                    <h3>Group {{ group_id }}</h3>
+                    <ul>
+                        <li><span>Orange:</span> <span class="count">{{ results.orange }}</span></li>
+                        <li><span>Blue:</span> <span class="count">{{ results.blue }}</span></li>
+                        <li><span>Green:</span> <span class="count">{{ results.green }}</span></li>
+                        <li><span>Yellow:</span> <span class="count">{{ results.yellow }}</span></li>
+                    </ul>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-results">No results have been recorded yet.</p>
+        {% endif %}
+    </div>
+
+</body>
+</html>
