@@ -3,401 +3,726 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spinner Experiment Recorder</title>
+    <title>Spinner Data Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', 'Arial Rounded MT Bold', sans-serif;
             min-height: 100vh;
             margin: 0;
             background-color: #f0f8ff;
             color: #333;
             padding: 20px;
-            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background-color: transparent;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        #button-container,
+        #add-slice-container,
+        #reset-btn-container {
+            opacity: 0.5; /* Make them look faded */
+            pointer-events: none; /* Prevent mouse clicks */
+            transition: opacity 0.3s ease-in-out; /* Smooth transition */
+        }
+
+        #button-container.active,
+        #add-slice-container.active,
+        #reset-btn-container.active {
+            opacity: 1; /* Restore full visibility */
+            pointer-events: auto; /* Allow mouse clicks again */
         }
         #app-container {
             background-color: white;
-            padding: 30px;
+            padding: 30px 15px;
             border-radius: 20px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             text-align: center;
-            width: 95%;
-            max-width: 1000px;
+            max-width: clamp(1100px, 95vw, 1600px);
+            width: 100%;
+            margin: 0 auto;
         }
         h1, h2, h3 { color: #4a4a4a; }
+
+        #classroom-header {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
         #tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
-        .tab-btn { padding: 10px 20px; border: none; background-color: transparent; font-size: 18px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
         .tab-btn.active { color: #3498db; border-bottom: 3px solid #3498db; }
         .view { display: none; }
         .view.active { display: block; }
-        #experiment-content { display: flex; flex-direction: row; gap: 30px; text-align: left; }
-        #left-panel { flex: 1; }
-        #right-panel {
-            flex: 1;
-            border-left: 2px dashed #ddd;
-            padding-left: 30px;
+
+        #experiment-content {
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            flex-direction: row;
+            gap: 30px;
+            text-align: left;
+            margin-top: 25px;
+            padding-top: 25px;
+            color:black;
         }
+        #left-panel, #right-panel {
+            background-color: #f8f9fa; /* Light gray background */
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #dee2e6; /* Thin border */
+}
+        #left-panelh2{
+          margin-top: 0px;
+        }
+
+        #left-panel {
+    flex: 1;
+}
+
+#right-panel {
+    flex: 1.8;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
         #chart-placeholder {
             text-align: center;
             color: #aaa;
-            background-color: #f9f9f9;
+            background-color: #f0f8ff;
             padding: 40px 20px;
             border-radius: 15px;
-            width: 100%;
+            width: 95%;
             height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
         }
         #results-content {
             display: flex;
             flex-direction: column;
-            width: 100%;
+            width: 95%;
             height: 100%;
+            background-color: #f0f8ff;
+            padding: 20px;
+            border-radius: 15px;
         }
+        #results-content h2,
+  #results-content p,
+  #my-results-text {
+      text-align: center;
+  }
+
         .chart-container {
             position: relative;
-            flex-grow: 1;
             width: 100%;
-            min-height: 250px;
+            max-width: 400px;
+            height: 400px;
+            margin: 0 auto;
         }
-        #settings-container { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
-        #settings-container div { display: flex; flex-direction: column; align-items: center; }
-        #settings-container label { margin-bottom: 5px; font-size: 0.9em; color: #555; }
+        #settings-container {
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 15px;
+            border-bottom: 2px dashed #ddd;
+            padding-bottom: 25px;
+        }
+        #settings-container div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #settings-container label { margin-bottom: 0; font-size: 0.9em; color: #555; }
         #settings-container input { padding: 8px 12px; font-size: 1em; border: 2px solid #3498db; border-radius: 8px; text-align: center; width: 120px; }
-        #settings-btn { padding: 10px 20px; font-size: 1em; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; align-self: flex-end; }
+        #settings-btn { padding: 10px 20px; font-size: 1em; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; align-self: center; }
         #settings-display { font-weight: bold; color: #27ae60; margin-top: 5px; margin-bottom: 20px; font-size: 1.1em; display: none; }
         #spin-counter { text-align: center; font-size: 1.5em; margin-bottom: 15px; }
-        #button-container { display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 400px; margin: 0 auto; }
+
+        #button-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            max-width: 100%;
+            margin: 0 auto;
+        }
         #button-container.active { opacity: 1; pointer-events: auto; }
-        .color-control { display: flex; justify-content: space-between; align-items: center; }
-        .color-label { color: white; font-weight: bold; font-size: 1.2em; padding: 10px 15px; border-radius: 8px; width: 160px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .op-btn { background-color: #ffffff; border: 2px solid #525252; color: #525252; width: 48px; height: 48px; border-radius: 50%; font-size: 32px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; transition: background-color 0.2s, transform 0.1s; }
+        .color-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .color-label {
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-grow: 1;
+        }
+        .op-btn { background-color: #ffffff; border: 2px solid #525252; color: #525252; width: 48px; height: 48px; border-radius: 50%; font-size: 32px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; transition: background-color 0.2s, transform 0.1s; flex-shrink: 0; }
         .op-btn:hover { background-color: #f7f7f7; }
         .op-btn:active { transform: scale(0.92); }
-        .color-label span { display: inline-block; margin-left: 8px; min-width: 25px; font-weight: normal; word-break: break-all; text-align: left; line-height: 1; }
-
-        #tally-chart-container { display: flex; justify-content: space-around; align-items: flex-end; margin-top: 25px; padding: 20px 10px; border-top: 1px solid #eee; height: 220px; background-color: #fafafa; border-radius: 8px; }
-        .tally-column-wrapper { display: flex; flex-direction: column; align-items: center; }
-        .tally-column { display: flex; flex-direction: column-reverse; width: 40px; height: 100%; align-items: center; }
-        .tally-svg-icon { width: 30px; height: 30px; margin-bottom: 2px; }
-        .tally-label { margin-top: 8px; font-weight: bold; font-size: 0.9em; }
-        #reset-btn-container { text-align: center; margin-top: 25px; }
-        #reset-btn { padding: 10px 20px; font-size: 18px; background-color: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer; }
-
-        .table-container { width: 100%; overflow-x: auto; margin-bottom: 20px; }
-        #results-table { width: 100%; border-collapse: collapse; text-align: center; }
-        #results-table th, #results-table td { padding: 12px 8px; border: 1px solid #ddd; }
-        #results-table thead { background-color: #3498db; color: white; }
-        #results-table tbody tr:nth-child(even) { background-color: #f2f2f2; }
-
-        /* --- MODIFIED: Styles for the new manual entry layout --- */
-        #manual-entry {
-            margin-top: 20px;
-            padding: 20px;
-            border: 2px dashed #ddd;
-            border-radius: 10px;
+        .color-label span { display: inline-block; margin-left: 5px; min-width: 20px; font-weight: normal; }
+        .remove-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
             display: flex;
-            flex-direction: column; /* Stack sections vertically */
-            gap: 15px;
             align-items: center;
-        }
-        #manual-entry h3 { width: 100%; margin: 0 0 10px 0; }
-        .manual-entry-fields {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
             justify-content: center;
+            flex-shrink: 0;
+            transition: background-color 0.2s, transform 0.1s;
         }
-        .field-group {
+        .remove-btn:hover { background-color: #c0392b; }
+        .remove-btn:active { transform: scale(0.9); }
+
+        #tally-chart-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch;
+            margin-top: 25px;
+            padding: 20px 10px;
+            border-top: 1px solid #eee;
+            height: 220px;
+            background-color: #fafafa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+        .tally-column-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .field-group label {
-            font-size: 0.85em;
-            color: #555;
-            margin-bottom: 4px;
+        .tally-column {
+            display: flex;
+            flex-direction: column-reverse;
+            width: 40px;
+            flex-grow: 1;
+            overflow: hidden;
+            align-items: center;
         }
-        #manual-entry input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            text-align: center;
+        .tally-label {
+            margin-top: 8px;
+            font-weight: bold;
+            font-size: 0.9em;
         }
+        .table-container {
+          width: 100%;
+          overflow-x: auto;
+          margin-bottom: 20px;
+          max-height: 300px;
+          overflow-y: auto;
+}
+        #reset-btn-container { text-align: center; margin-top: 25px; }
+        #reset-btn { padding: 10px 20px; font-size: 18px; background-color: #e74c3c; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        #results-table { width: 100%; border-collapse: collapse; text-align: center; }
+        #results-table th, #results-table td { padding: 12px 8px; border: 1px solid #ddd; }
+        #results-table thead { background-color: #3498db; color: white; }
+        #results-table tbody tr:nth-child(even) { background-color: #f2f2f2; }
+        #manual-entry { margin-top: 30px; padding: 20px; border: 2px dashed #ddd; border-radius: 10px; }
+        #manual-entry h3 { margin: 0 0 15px 0; }
+        .manual-entry-fields { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; justify-content: center; }
+        .field-group { display: flex; flex-direction: column; align-items: flex-start; }
+        .field-group label { font-size: 0.85em; color: #555; margin-bottom: 4px; font-weight: bold; }
+        #manual-entry input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-size: 1em; }
         #manual-entry input[type="text"] { width: 180px; }
         #manual-entry input[type="number"] { width: 80px; }
-        #add-group-btn {
-            padding: 10px 20px;
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-        }
-
-        #combine-controls { margin: 20px 0; }
+        #add-group-btn { padding: 10px 20px; background-color: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; height: 40px; }
+        #combine-controls { margin: 30px 0; }
+        #combine-btn { padding: 12px 25px; font-size: 1.1em; background-color: #2980b9; color: white; border: none; border-radius: 8px; cursor: pointer; }
         #combined-results-view { margin-top: 20px; padding-top: 20px; border-top: 2px dashed #ddd; }
         .description { font-size: 0.9em; color: #666; margin-bottom: 15px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .combined-layout-container { display: flex; flex-direction: row; align-items: center; gap: 30px; margin-top: 20px; }
+        #combined-summary-text { flex: 1; text-align: left; font-size: 1.1em; line-height: 1.6; padding: 20px; background-color: #f9f9f9; border-radius: 8px; }
+        #combined-summary-text h4 { margin-top: 0; color: #3498db; }
+        #combined-summary-text p { margin: 5px 0; }
+        #combined-results-view .chart-container { flex: 1.5; }
+        #main-content { display: none; }
+        #add-slice-container { margin: 25px auto; padding: 20px; border: 2px dashed #a5d6a7; border-radius: 15px; max-width: 500px; background-color: #f8fdf8; }
 
-        @media (max-width: 768px) {
-            #experiment-content { flex-direction: column; }
+        /* MODIFIED: Changed align-items to center for better vertical alignment */
+        .add-slice-fields { display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .add-slice-fields > label { font-weight: bold; color: #388e3c; } /* Style for the new label */
+        .add-slice-fields input[type="color"] { width: 50px; height: 41px; padding: 2px; border: 2px solid #81c784; border-radius: 8px; background-color: #fff; cursor: pointer; }
+        #add-slice-btn { padding: 10px 20px; font-size: 1em; background-color: #4caf50; color: white; border: none; border-radius: 8px; cursor: pointer; }
+
+        .slice-name-group {
+            display: none;
+        }
+
+        @media (max-width: 800px) {
+            #experiment-content, .combined-layout-container { flex-direction: column; }
             #right-panel { border-left: none; border-top: 2px dashed #ddd; padding-left: 0; margin-top: 20px; padding-top: 20px; }
             #app-container { padding: 15px; }
+        }
+
+        #logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            font-size: 1em;
+            background-color: #7f8c8d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit; /* Use the same rounded font */
+}
+#logout-btn:hover {
+    background-color: #95a5a6;
+}
+
+#settings-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            border-bottom: 2px dashed #ddd; /* Separator line */
+            padding-bottom: 25px; /* Space below the line */
+        }
+        #download-csv-btn, #delete-btn {
+      border: 2px solid;
+      background-color: white;
+      transition: background-color 0.2s, color 0.2s;
+      display: flex; /* Helps align icon and text */
+      align-items: center;
+      gap: 8px; /* Space between icon and text */
+  }
+
+  #download-csv-btn {
+      padding: 8px 16px;
+      font-size: 1em;
+      color: #27ae60;
+      border-color: #27ae60;
+
+  }
+  #download-csv-btn:hover {
+      background-color: #27ae60;
+      color: white;
+  }
+
+  #delete-btn {
+      padding: 12px 25px;
+      font-size: 1.1em;
+      color: #e74c3c;
+      border-color: #e74c3c;
+
+  }
+  #delete-btn:hover {
+      background-color: #e74c3c;
+      color: white;
+  }
+  .table-actions {
+            display: flex;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
-    <div id="app-container">
-        <div id="tabs">
-            <button class="tab-btn active" id="my-experiment-tab">My Experiment</button>
-            <button class="tab-btn" id="all-results-tab">All Group Results</button>
-        </div>
-        <div id="my-experiment-view" class="view active">
-            <div id="settings-container">
-                <div> <label for="group-id-input">Group Name</label> <input type="text" id="group-id-input" placeholder="e.g., Team Alpha"> </div>
-                <div> <label for="max-spins-input">Total Spins to Collect</label> <input type="number" id="max-spins-input" value="20" min="1"> </div>
-                <button id="settings-btn">Set & Start</button>
-            </div>
-            <div id="settings-display"></div>
-            <div id="experiment-content">
-                <div id="left-panel">
-                    <h2>Record Your Spins</h2>
-                    <h3 id="spin-counter">Total Spins: 0 / 20</h3>
-                    <div id="button-container">
-                        <div class="color-control">
-                            <button class="op-btn minus-btn" data-color="orange" aria-label="Decrease Orange count">-</button>
-                            <div class="color-label" style="background-color: #ff9f43;"> Orange: <span id="orange-count"></span> </div>
-                            <button class="op-btn plus-btn" data-color="orange" aria-label="Increase Orange count">+</button>
-                        </div>
-                        <div class="color-control">
-                            <button class="op-btn minus-btn" data-color="blue" aria-label="Decrease Blue count">-</button>
-                            <div class="color-label" style="background-color: #3498db;"> Blue: <span id="blue-count"></span> </div>
-                            <button class="op-btn plus-btn" data-color="blue" aria-label="Increase Blue count">+</button>
-                        </div>
-                        <div class="color-control">
-                            <button class="op-btn minus-btn" data-color="green" aria-label="Decrease Green count">-</button>
-                            <div class="color-label" style="background-color: #2ecc71;"> Green: <span id="green-count"></span> </div>
-                            <button class="op-btn plus-btn" data-color="green" aria-label="Increase Green count">+</button>
-                        </div>
-                        <div class="color-control">
-                            <button class="op-btn minus-btn" data-color="yellow" aria-label="Decrease Yellow count">-</button>
-                            <div class="color-label" style="background-color: #f1c40f;"> Yellow: <span id="yellow-count"></span> </div>
-                            <button class="op-btn plus-btn" data-color="yellow" aria-label="Increase Yellow count">+</button>
-                        </div>
-                    </div>
-                    <div id="tally-chart-container">
-                        <div class="tally-column-wrapper">
-                            <div class="tally-column" id="orange-tally-column"></div> <div class="tally-label">Orange</div>
-                        </div>
-                        <div class="tally-column-wrapper">
-                            <div class="tally-column" id="blue-tally-column"></div> <div class="tally-label">Blue</div>
-                        </div>
-                        <div class="tally-column-wrapper">
-                            <div class="tally-column" id="green-tally-column"></div> <div class="tally-label">Green</div>
-                        </div>
-                        <div class="tally-column-wrapper">
-                            <div class="tally-column" id="yellow-tally-column"></div> <div class="tally-label">Yellow</div>
-                        </div>
-                    </div>
-                    <div id="reset-btn-container"> <button id="reset-btn">Start Over</button> </div>
-                </div>
-                <div id="right-panel">
-                    <div id="chart-placeholder">
-                        <h3>Final Results!</h3>
-                        <p>Your pie chart will appear here once all spins are recorded.</p>
-                    </div>
-                    <div id="results-content" style="display: none; text-align: center;">
-                        <h2 id="final-results-title">Final Results!</h2>
-                        <p id="final-results-summary"></p>
-                        <div id="my-results-text" style="text-align: left; margin-bottom: 15px;"></div>
-                        <div class="chart-container"> <canvas id="myResultsChart"></canvas> </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <button id="logout-btn">Log Out</button>
+    <h2 id="classroom-header" style="display: none;">Classroom: <span id="classroom-code-display" style="color: #3498db;"></span></h2>
 
-        <div id="all-results-view" class="view">
-             <h2>All Group Results</h2>
-             <p class="description">This table automatically shows results from all groups using the software. You can also use the form below to add results for any groups that used paper.</p>
-             <div class="table-container">
-                 <table id="results-table">
-                     <thead>
-                         <tr>
-                             <th>Select</th>
-                             <th>Group Name</th>
-                             <th>Total Spins</th>
-                             <th>Orange</th>
-                             <th>Blue</th>
-                             <th>Green</th>
-                             <th>Yellow</th>
-                         </tr>
-                     </thead>
-                     <tbody>
-                     </tbody>
-                 </table>
-             </div>
-             <div id="manual-entry">
-                 <h3>Add Results for a Paper-Based Group</h3>
-                 <div class="manual-entry-fields">
-                     <div class="field-group">
-                         <label for="manual-group-name">Group Name</label>
-                         <input type="text" id="manual-group-name" placeholder="e.g., Team Paper">
-                     </div>
-                     <div class="field-group">
-                         <label for="manual-orange">Orange</label>
-                         <input type="number" id="manual-orange" min="0" value="0">
-                     </div>
-                     <div class="field-group">
-                         <label for="manual-blue">Blue</label>
-                         <input type="number" id="manual-blue" min="0" value="0">
-                     </div>
-                     <div class="field-group">
-                         <label for="manual-green">Green</label>
-                         <input type="number" id="manual-green" min="0" value="0">
-                     </div>
-                     <div class="field-group">
-                         <label for="manual-yellow">Yellow</label>
-                         <input type="number" id="manual-yellow" min="0" value="0">
+    <div id="app-container">
+        <div id="main-content">
+            <div id="tabs">
+                <button class="tab-btn active" id="my-experiment-tab">My Experiment</button>
+                <button class="tab-btn" id="all-results-tab">All Group Results</button>
+            </div>
+
+
+            <div id="my-experiment-view" class="view active">
+              <div id="settings-container">
+                    <div class="setting-group">
+                        <label for="group-id-input">Group Name:</label>
+                        <input type="text" id="group-id-input" placeholder="e.g., Team Alpha">
+                    </div>
+                    <div class="setting-group">
+                        <label for="max-spins-input">Total Spins to Collect:</label>
+                        <input type="number" id="max-spins-input" value="20" min="1">
+                    </div>
+                    <div id="add-slice-fields">
+                        <label>Add a New Slice:</label>
+                        <input type="color" id="custom-color-picker" value="#8e44ad">
+                        <button id="add-slice-btn">Add</button>
+                    </div>
+                    <button id="settings-btn"> Start</button>
+                </div>
+                <div id="settings-display"></div>
+                <div id="experiment-content">
+                    <div id="left-panel">
+                        <h2>Record Your Spins</h2>
+                        <h3 id="spin-counter">Total Spins: 0 / 20</h3>
+                        <div id="reset-btn-container"> <button id="reset-btn">Start Over</button> </div>
+
+                        <div id="button-container">
+                            <div class="color-control">
+                                <button class="op-btn minus-btn" data-color="orange" aria-label="Decrease Orange count">-</button>
+                                <div class="color-label" style="background-color: #ff9f43;"> Orange (<span id="orange-count">0</span>) </div>
+                                <button class="op-btn plus-btn" data-color="orange" aria-label="Increase Orange count">+</button>
+                            </div>
+                            <div class="color-control">
+                                <button class="op-btn minus-btn" data-color="blue" aria-label="Decrease Blue count">-</button>
+                                <div class="color-label" style="background-color: #3498db;"> Blue (<span id="blue-count">0</span>) </div>
+                                <button class="op-btn plus-btn" data-color="blue" aria-label="Increase Blue count">+</button>
+                            </div>
+                            <div class="color-control">
+                                <button class="op-btn minus-btn" data-color="green" aria-label="Decrease Green count">-</button>
+                                <div class="color-label" style="background-color: #2ecc71;"> Green (<span id="green-count">0</span>) </div>
+                                <button class="op-btn plus-btn" data-color="green" aria-label="Increase Green count">+</button>
+                            </div>
+                            <div class="color-control">
+                                <button class="op-btn minus-btn" data-color="yellow" aria-label="Decrease Yellow count">-</button>
+                                <div class="color-label" style="background-color: #f1c40f;"> Yellow (<span id="yellow-count">0</span>) </div>
+                                <button class="op-btn plus-btn" data-color="yellow" aria-label="Increase Yellow count">+</button>
+                            </div>
+                        </div>
+                        <!-- <div id="add-slice-container">
+                            <div class="add-slice-fields">
+                                <label>Add a New Slice:</label>
+                                <div class="slice-name-group">
+                                    <input type="text" id="custom-color-name" placeholder="e.g., Purple">
+                                </div>
+                                <input type="color" id="custom-color-picker" value="#8e44ad">
+                                <button id="add-slice-btn">Add</button>
+                            </div>
+                        </div> -->
+                        <div id="tally-chart-container">
+                            <div class="tally-column-wrapper">
+                                <div class="tally-column" id="orange-tally-column"></div> <div class="tally-label">Orange</div>
+                            </div>
+                            <div class="tally-column-wrapper">
+                                <div class="tally-column" id="blue-tally-column"></div> <div class="tally-label">Blue</div>
+                            </div>
+                            <div class="tally-column-wrapper">
+                                <div class="tally-column" id="green-tally-column"></div> <div class="tally-label">Green</div>
+                            </div>
+                            <div class="tally-column-wrapper">
+                                <div class="tally-column" id="yellow-tally-column"></div> <div class="tally-label">Yellow</div>
+                            </div>
+                        </div>
+                        <!-- <div id="reset-btn-container"> <button id="reset-btn">Start Over</button> </div> -->
+                    </div>
+                    <div id="right-panel">
+                        <div id="chart-placeholder">
+                            <h3>Final Results!</h3>
+                            <p>Your pie chart will appear here once all spins are recorded.</p>
+                        </div>
+                        <div id="results-content" style="display: none;">
+                            <h2 id="final-results-title">Final Results!</h2>
+                            <p id="final-results-summary"></p>
+                            <div id="my-results-text" style="text-align: left; margin-bottom: 15px;"></div>
+                            <div class="chart-container"> <canvas id="myResultsChart"></canvas> </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="all-results-view" class="view">
+              <div class="view-header">
+                       <h2>All Group Results</h2>
+
+                    </div>
+
+                    <div class="table-actions">
+                     <button id="download-csv-btn">Download CSV</button>
+                     <button id="delete-btn"> Delete Selected</button>
+                 </div>
+                       <!-- <p class="description">This table automatically shows results from all groups using the software. You can also use the form below to add results for any groups that used paper.</p> -->
+                 <div class="table-container">
+                       <table id="results-table">
+                             <thead>
+                                 <tr>
+                                     <th>Select</th>
+                                     <th>Group Name</th>
+                                     <th>Total Spins</th>
+                                     <th>Orange</th>
+                                     <th>Blue</th>
+                                     <th>Green</th>
+                                     <th>Yellow</th>
+                                 </tr>
+                             </thead>
+                             <tbody>
+                             </tbody>
+                       </table>
+                 </div>
+                 <div id="manual-entry">
+                     <h3>Add Results manually</h3>
+                     <div class="manual-entry-fields">
+                         <div class="field-group">
+                             <label for="manual-group-name">Group Name</label>
+                             <input type="text" id="manual-group-name" placeholder="e.g., Team Paper">
+                         </div>
+                         <div class="field-group">
+                             <label for="manual-orange">Orange</label>
+                             <input type="number" id="manual-orange" min="0" value="0">
+                         </div>
+                         <div class="field-group">
+                             <label for="manual-blue">Blue</label>
+                             <input type="number" id="manual-blue" min="0" value="0">
+                         </div>
+                         <div class="field-group">
+                             <label for="manual-green">Green</label>
+                             <input type="number" id="manual-green" min="0" value="0">
+                         </div>
+                         <div class="field-group">
+                             <label for="manual-yellow">Yellow</label>
+                             <input type="number" id="manual-yellow" min="0" value="0">
+                         </div>
+                         <button id="add-group-btn">Add Group</button>
                      </div>
                  </div>
-                 <button id="add-group-btn">Add Group</button>
-             </div>
-             <div id="combine-controls">
-                 <button id="combine-btn">Combine Selected Results</button>
-             </div>
-             <div id="combined-results-view" style="display:none;">
-                 <h3>Combined Chart</h3>
-                 <p id="combined-info"></p>
-                 <div class="chart-container">
-                    <canvas id="combinedChart"></canvas>
+                 <div id="combine-controls">
+                     <button id="combine-btn">Combine Selected Results</button>
+
+
                  </div>
-             </div>
+
+                 <div id="combined-results-view" style="display:none;">
+                     <h3>Combined Chart</h3>
+                     <p id="combined-info"></p>
+                     <div class="combined-layout-container">
+                         <div id="combined-summary-text"></div>
+                         <div class="chart-container"> <canvas id="combinedChart"></canvas> </div>
+                     </div>
+                 </div>
+            </div>
         </div>
     </div>
 
     <script>
-        
-        let maxSpins = 20; let currentGroupId = null; let counts = { orange: 0, blue: 0, green: 0, yellow: 0 }; let totalSpins = 0; let allResultsData = {};
-        const chartPlaceholder = document.getElementById('chart-placeholder'); const resultsContent = document.getElementById('results-content'); const groupIdInput = document.getElementById('group-id-input'); const maxSpinsInput = document.getElementById('max-spins-input'); const settingsBtn = document.getElementById('settings-btn'); const settingsDisplay = document.getElementById('settings-display'); const buttonContainer = document.getElementById('button-container'); const spinCounter = document.getElementById('spin-counter'); const myResultsTextDiv = document.getElementById('my-results-text'); const finalResultsSummary = document.getElementById('final-results-summary'); const resetBtn = document.getElementById('reset-btn'); const countSpans = { orange: document.getElementById('orange-count'), blue: document.getElementById('blue-count'), green: document.getElementById('green-count'), yellow: document.getElementById('yellow-count') }; const myExperimentTab = document.getElementById('my-experiment-tab'); const allResultsTab = document.getElementById('all-results-tab'); const myExperimentView = document.getElementById('my-experiment-view'); const allResultsView = document.getElementById('all-results-view'); const combineBtn = document.getElementById('combine-btn'); const combinedResultsView = document.getElementById('combined-results-view'); const combinedInfo = document.getElementById('combined-info'); const chartColors = { orange: '#ff9f43', blue: '#3498db', green: '#2ecc71', yellow: '#f1c40f' };
 
+        const downloadCsvBtn = document.getElementById('download-csv-btn');
+        const deleteBtn = document.getElementById('delete-btn');
+        const addSliceContainer = document.getElementById('add-slice-container');
+        const resetBtnContainer = document.getElementById('reset-btn-container');
+        const colorNameList = [ { name: "Beige", r: 245, g: 245, b: 220 },{ name: "Black", r: 0, g: 0, b: 0 },{ name: "Blue", r: 0, g: 0, b: 255 },{ name: "Brown", r: 165, g: 42, b: 42 },{ name: "Coral", r: 255, g: 127, b: 80 },{ name: "Cyan", r: 0, g: 255, b: 255 },{ name: "Gold", r: 255, g: 215, b: 0 },{ name: "Gray", r: 128, g: 128, b: 128 },{ name: "Green", r: 0, g: 128, b: 0 },{ name: "HotPink", r: 255, g: 105, b: 180 },{ name: "Indigo", r: 75, g: 0, b: 130 },{ name: "Ivory", r: 255, g: 255, b: 240 },{ name: "Khaki", r: 240, g: 230, b: 140 },{ name: "Lavender", r: 230, g: 230, b: 250 },{ name: "Lime", r: 0, g: 255, b: 0 },{ name: "Magenta", r: 255, g: 0, b: 255 },{ name: "Maroon", r: 128, g: 0, b: 0 },{ name: "Navy", r: 0, g: 0, b: 128 },{ name: "Olive", r: 128, g: 128, b: 0 },{ name: "Orange", r: 255, g: 165, b: 0 },{ name: "Orchid", r: 218, g: 112, b: 214 },{ name: "Peru", r: 205, g: 133, b: 63 },{ name: "Pink", r: 255, g: 192, b: 203 },{ name: "Plum", r: 221, g: 160, b: 221 },{ name: "Purple", r: 128, g: 0, b: 128 },{ name: "Red", r: 255, g: 0, b: 0 },{ name: "Salmon", r: 250, g: 128, b: 114 },{ name: "Sienna", r: 160, g: 82, b: 45 },{ name: "Silver", r: 192, g: 192, b: 192 },{ name: "Tan", r: 210, g: 180, b: 140 },{ name: "Teal", r: 0, g: 128, b: 128 },{ name: "Tomato", r: 255, g: 99, b: 71 },{ name: "Turquoise", r: 64, g: 224, b: 208 },{ name: "Violet", r: 238, g: 130, b: 238 },{ name: "White", r: 255, g: 255, b: 255 },{ name: "Yellow", r: 255, g: 255, b: 0 }];
+        const defaultCounts = { orange: 0, blue: 0, green: 0, yellow: 0 };
+        const defaultChartColors = { orange: '#ff9f43', blue: '#3498db', green: '#2ecc71', yellow: '#f1c40f' };
+        let currentClassCode = null;
+        let maxSpins = 20;
+        let currentGroupId = null;
+        let counts = { ...defaultCounts };
+        let chartColors = { ...defaultChartColors };
+        let totalSpins = 0;
+        let allResultsData = {};
+        const mainContent = document.getElementById('main-content');
+        const classroomHeader = document.getElementById('classroom-header');
+        const classroomCodeDisplay = document.getElementById('classroom-code-display');
+        const chartPlaceholder = document.getElementById('chart-placeholder');
+        const resultsContent = document.getElementById('results-content');
+        const groupIdInput = document.getElementById('group-id-input');
+        const maxSpinsInput = document.getElementById('max-spins-input');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsDisplay = document.getElementById('settings-display');
+        const buttonContainer = document.getElementById('button-container');
+        const spinCounter = document.getElementById('spin-counter');
+        const myResultsTextDiv = document.getElementById('my-results-text');
+        const finalResultsSummary = document.getElementById('final-results-summary');
+        const resetBtn = document.getElementById('reset-btn');
+        const myExperimentTab = document.getElementById('my-experiment-tab');
+        const allResultsTab = document.getElementById('all-results-tab');
+        const myExperimentView = document.getElementById('my-experiment-view');
+        const allResultsView = document.getElementById('all-results-view');
+        const combineBtn = document.getElementById('combine-btn');
+        const combinedResultsView = document.getElementById('combined-results-view');
+        const combinedInfo = document.getElementById('combined-info');
         const addGroupBtn = document.getElementById('add-group-btn');
-        if(addGroupBtn) { addGroupBtn.addEventListener('click', addGroupManually); }
+        const addSliceBtn = document.getElementById('add-slice-btn');
+        const customColorPicker = document.getElementById('custom-color-picker');
+        const tallyChartContainer = document.getElementById('tally-chart-container');
 
-        settingsBtn.addEventListener('click', setSettings); buttonContainer.addEventListener('click', updateCount); resetBtn.addEventListener('click', resetExperiment); myExperimentTab.addEventListener('click', () => switchTab('my-experiment')); allResultsTab.addEventListener('click', () => switchTab('all-results')); combineBtn.addEventListener('click', combineSelectedResults);
 
-        function setSettings() {
-            const inputId = groupIdInput.value.trim(); const inputMaxSpins = maxSpinsInput.value.trim();
-            if (inputId && inputMaxSpins && !isNaN(parseInt(inputMaxSpins)) && parseInt(inputMaxSpins) > 0) {
-                currentGroupId = inputId; maxSpins = parseInt(inputMaxSpins);
-                groupIdInput.disabled = true; maxSpinsInput.disabled = true; settingsBtn.disabled = true; settingsDisplay.innerHTML = `Recording for <strong>Group ${currentGroupId}</strong> | Target: <strong>${maxSpins} spins</strong>`; settingsDisplay.style.display = 'block'; buttonContainer.classList.add('active');
-                updateTally();
-            } else { alert("Please enter a valid Group Name and a Total Spins count (must be a number greater than 0)."); }
-        }
+        // event listeners for downkload and delete
+        downloadCsvBtn.addEventListener('click', downloadTableAsCSV);
+        deleteBtn.addEventListener('click', deleteSelectedRows);
 
-        function showFinalResults() {
-            chartPlaceholder.style.display = 'none'; resultsContent.style.display = 'flex'; finalResultsSummary.textContent = `Here is the distribution of your ${maxSpins} spins:`; let resultsHTML = ''; for (const color in counts) { const percentage = (totalSpins > 0) ? (counts[color] / totalSpins) * 100 : 0; resultsHTML += `<b>${color.charAt(0).toUpperCase() + color.slice(1)}:</b> ${counts[color]} spins (${percentage.toFixed(1)}%)<br>`; } myResultsTextDiv.innerHTML = resultsHTML; const labels = Object.keys(counts); const data = Object.values(counts); createPieChart('myResultsChart', labels, data);
-        }
+        function deleteSelectedRows() {
+            const selectedCheckboxes = document.querySelectorAll('#results-table .group-checkbox:checked');
+            if (selectedCheckboxes.length === 0) {
+                alert("Please select at least one row to delete.");
+                return;
+            }
 
-        function resetExperiment() {
-            if (!confirm("Are you sure you want to start over? This will reset your Group Name and counts.")) { return; }
-            totalSpins = 0; counts = { orange: 0, blue: 0, green: 0, yellow: 0 }; currentGroupId = null; maxSpins = 20; updateTally();
-            resultsContent.style.display = 'none'; chartPlaceholder.style.display = 'flex'; if (window['myResultsChart_chart']) { window['myResultsChart_chart'].destroy(); }
-            groupIdInput.disabled = false; groupIdInput.value = ''; maxSpinsInput.disabled = false; maxSpinsInput.value = '20'; settingsBtn.disabled = false; settingsDisplay.style.display = 'none'; buttonContainer.classList.remove('active');
-            if (window['combinedChart_chart']) { window['combinedChart_chart'].destroy(); combinedResultsView.style.display = 'none'; }
-            switchTab('my-experiment');
-        }
+            if (!confirm(`Are you sure you want to delete ${selectedCheckboxes.length} selected row(s)? This action cannot be undone.`)) {
+                return;
+            }
 
-        async function updateCount(event) {
-            if (!currentGroupId) { alert("Please set your Group Name and Total Spins first!"); return; }
-            const target = event.target; if (!target.matches('.op-btn')) return;
-            const color = target.dataset.color; const isPlus = target.classList.contains('plus-btn');
-            if (isPlus) { if (totalSpins >= maxSpins) { alert(`You have already reached the target of ${maxSpins} spins.`); return; } totalSpins++; counts[color]++; sendSpinUpdate(currentGroupId, color, 'add'); } else { if (counts[color] > 0) { totalSpins--; counts[color]--; sendSpinUpdate(currentGroupId, color, 'remove'); } }
-            updateTally(); if (totalSpins >= maxSpins) { showFinalResults(); }
-        }
-
-        function updateTally() {
-            spinCounter.textContent = `Total Spins: ${totalSpins} / ${maxSpins}`;
-            for (const color in counts) { countSpans[color].textContent = 'X'.repeat(counts[color]); }
-            updateTallyChart();
-        }
-
-        function updateTallyChart() {
-            const colors = ['orange', 'blue', 'green', 'yellow'];
-            colors.forEach(color => {
-                const column = document.getElementById(`${color}-tally-column`);
-                column.innerHTML = '';
-                for (let i = 0; i < counts[color]; i++) {
-                    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                    svg.setAttribute("viewBox", "0 0 50 50"); svg.classList.add('tally-svg-icon');
-                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    path.setAttribute("d", "M10 10 L40 40 M40 10 L10 40"); path.setAttribute("stroke", chartColors[color]);
-                    path.setAttribute("stroke-width", "12"); path.setAttribute("stroke-linecap", "round"); path.setAttribute("fill", "none");
-                    svg.appendChild(path); column.appendChild(svg);
-                }
+            selectedCheckboxes.forEach(checkbox => {
+                const groupId = checkbox.dataset.groupId;
+                // Remove from the data object
+                delete allResultsData[groupId];
+                // Remove from the visual table
+                checkbox.closest('tr').remove();
             });
         }
 
-        async function sendSpinUpdate(groupId, color, action) { try { await fetch('/update_spin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ group_id: groupId, color: color, action: action }), }); } catch (error) { console.error(`Failed to send spin update (${action}) to backend:`, error); } }
+        function downloadTableAsCSV() {
+            const headers = ["Group Name", "Total Spins", "Orange", "Blue", "Green", "Yellow"];
+            const csvRows = [headers.join(',')]; // Start with the header row
 
-        function switchTab(tabName) {
-            if (tabName === 'my-experiment') {
-                myExperimentTab.classList.add('active'); allResultsTab.classList.remove('active');
-                myExperimentView.classList.add('active'); allResultsView.classList.remove('active');
-            } else {
-                myExperimentTab.classList.remove('active'); allResultsTab.classList.add('active');
-                myExperimentView.classList.remove('active'); allResultsView.classList.add('active');
-                fetchAllResults();
+            // Iterate over the data object to create rows
+            for (const groupId in allResultsData) {
+                const groupData = allResultsData[groupId];
+                const total = (groupData.orange || 0) + (groupData.blue || 0) + (groupData.green || 0) + (groupData.yellow || 0);
+                const row = [
+                    `"${groupId}"`, // Enclose in quotes to handle names with commas
+                    total,
+                    groupData.orange || 0,
+                    groupData.blue || 0,
+                    groupData.green || 0,
+                    groupData.yellow || 0
+                ];
+                csvRows.push(row.join(','));
+            }
+
+            const csvContent = csvRows.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'spinner-results.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
         }
 
-        function appendRowToTable(groupId, results) {
-            const tableBody = document.querySelector("#results-table tbody");
-            const newRow = tableBody.insertRow();
-            const total = Object.values(results).reduce((sum, count) => sum + count, 0);
-
-            const cellCheckbox = newRow.insertCell();
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'group-checkbox';
-            checkbox.dataset.groupId = groupId;
-            cellCheckbox.appendChild(checkbox);
-
-            const cellGroupName = newRow.insertCell();
-            cellGroupName.textContent = groupId;
-
-            newRow.insertCell().textContent = total;
-            newRow.insertCell().textContent = results.orange || 0;
-            newRow.insertCell().textContent = results.blue || 0;
-            newRow.insertCell().textContent = results.green || 0;
-            newRow.insertCell().textContent = results.yellow || 0;
+        settingsBtn.addEventListener('click', setSettings);
+        buttonContainer.addEventListener('click', handleButtonActions);
+        resetBtn.addEventListener('click', resetExperiment);
+        myExperimentTab.addEventListener('click', () => switchTab('my-experiment'));
+        allResultsTab.addEventListener('click', () => switchTab('all-results'));
+        combineBtn.addEventListener('click', combineSelectedResults);
+        if(addGroupBtn) { addGroupBtn.addEventListener('click', addGroupManually); }
+        addSliceBtn.addEventListener('click', addCustomSlice);
+        window.addEventListener('load', () => {
+            while (!currentClassCode) {
+                currentClassCode = prompt("Please enter your Classroom Code:");
+                if (currentClassCode) { currentClassCode = currentClassCode.trim(); }
+            }
+            mainContent.style.display = 'block';
+            classroomCodeDisplay.textContent = currentClassCode;
+            classroomHeader.style.display = 'block';
+            updateTally();
+        });
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+        }
+        function getColorName(hex) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return "Color";
+            let closestColor = { name: "Color", dist: Infinity };
+            for (const color of colorNameList) {
+                const dist = Math.sqrt(Math.pow(rgb.r - color.r, 2) + Math.pow(rgb.g - color.g, 2) + Math.pow(rgb.b - color.b, 2));
+                if (dist < closestColor.dist) {
+                    closestColor = { name: color.name, dist: dist };
+                }
+            }
+            return closestColor.name;
+        }
+        function addCustomSlice() {
+            const colorValue = customColorPicker.value;
+            const baseName = getColorName(colorValue);
+            let name = baseName.toLowerCase();
+            let counter = 2;
+            while (counts.hasOwnProperty(name)) {
+                name = `${baseName.toLowerCase()} (${counter})`;
+                counter++;
+            }
+            counts[name] = 0;
+            chartColors[name] = colorValue;
+            const newControl = document.createElement('div');
+            newControl.className = 'color-control custom-slice';
+            newControl.dataset.color = name;
+            const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+            newControl.innerHTML = `
+                <button class="op-btn minus-btn" data-color="${name}" aria-label="Decrease ${displayName} count">-</button>
+                <div class="color-label" style="background-color: ${colorValue};"> ${displayName} (<span id="${name.replace(/\s/g, '-')}-count">0</span>) </div>
+                <button class="op-btn plus-btn" data-color="${name}" aria-label="Increase ${displayName} count">+</button>
+                <button class="remove-btn" data-color="${name}" aria-label="Remove ${displayName}">✖</button>
+            `;
+            buttonContainer.appendChild(newControl);
+            const newTallyWrapper = document.createElement('div');
+            newTallyWrapper.className = 'tally-column-wrapper custom-slice';
+            newTallyWrapper.dataset.color = name;
+            newTallyWrapper.innerHTML = `
+                <div class="tally-column" id="${name.replace(/\s/g, '-')}-tally-column"></div>
+                <div class="tally-label">${displayName}</div>
+            `;
+            tallyChartContainer.appendChild(newTallyWrapper);
+            updateTally();
+        }
+        function removeCustomSlice(colorToRemove) {
+            if (!confirm(`Are you sure you want to remove the "${colorToRemove}" slice?`)) {
+                return;
+            }
+            totalSpins -= counts[colorToRemove];
+            delete counts[colorToRemove];
+            delete chartColors[colorToRemove];
+            document.querySelector(`.color-control[data-color="${colorToRemove}"]`).remove();
+            document.querySelector(`.tally-column-wrapper[data-color="${colorToRemove}"]`).remove();
+            updateTally();
+        }
+        async function sendSpinUpdate(groupId, color, action) {
+            if (!currentClassCode) return;
+            if (!defaultCounts.hasOwnProperty(color)) {
+                console.log(`Custom color "${color}" change not sent to server.`);
+                return;
+            }
+            try {
+                await fetch('/update_spin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        group_id: groupId, color: color, action: action, classroom_code: currentClassCode
+                    }),
+                });
+            } catch (error) { console.error(`Failed to send spin update (${action}) to backend:`, error); }
         }
 
         async function fetchAllResults() {
+            if (!currentClassCode) return;
             try {
-                const response = await fetch('/api/results');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                const response = await fetch(`/api/results?classroom_code=${currentClassCode}`);
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
                 const data = await response.json();
                 allResultsData = data.summary;
-
                 const tableBody = document.querySelector("#results-table tbody");
                 tableBody.innerHTML = '';
                 if (Object.keys(allResultsData).length === 0) {
                     const row = tableBody.insertRow();
                     const cell = row.insertCell();
                     cell.colSpan = 7;
-                    cell.textContent = 'No groups have recorded results yet. Use the "My Experiment" tab to add data.';
+                    cell.textContent = 'No groups have recorded results yet for this class.';
                     return;
                 }
                 for (const groupId in allResultsData) {
@@ -413,47 +738,176 @@
                 cell.textContent = 'Could not load results. Please try again.';
             }
         }
+        // function setSettings() {
+        //     const inputId = groupIdInput.value.trim(); const inputMaxSpins = maxSpinsInput.value.trim();
+        //     if (inputId && inputMaxSpins && !isNaN(parseInt(inputMaxSpins)) && parseInt(inputMaxSpins) > 0) {
+        //         currentGroupId = inputId; maxSpins = parseInt(inputMaxSpins);
+        //         groupIdInput.disabled = true; maxSpinsInput.disabled = true; settingsBtn.disabled = true; settingsDisplay.innerHTML = `Recording for <strong>Group ${currentGroupId}</strong> | Target: <strong>${maxSpins} spins</strong>`; settingsDisplay.style.display = 'block'; buttonContainer.classList.add('active');
+        //         updateTally();
+        //     } else { alert("Please enter a valid Group Name and a Total Spins count (must be a number greater than 0)."); }
+        // }
 
+        function setSettings() {
+              const inputId = groupIdInput.value.trim();
+              const inputMaxSpins = maxSpinsInput.value.trim();
+              if (inputId && inputMaxSpins && !isNaN(parseInt(inputMaxSpins)) && parseInt(inputMaxSpins) > 0) {
+                  currentGroupId = inputId;
+                  maxSpins = parseInt(inputMaxSpins);
+                  groupIdInput.disabled = true;
+                  maxSpinsInput.disabled = true;
+                  settingsBtn.disabled = true;
+                  settingsDisplay.innerHTML = `Recording for <strong>Group ${currentGroupId}</strong> | Target: <strong>${maxSpins} spins</strong>`;
+                  settingsDisplay.style.display = 'block';
+
+                  //  Activate the control containers
+                  buttonContainer.classList.add('active');
+                  addSliceContainer.classList.add('active');
+                  resetBtnContainer.classList.add('active');
+
+                  updateTally();
+              } else {
+                  alert("Please enter a valid Group Name and a Total Spins count (must be a number greater than 0).");
+              }
+          }
+
+        function showFinalResults() {
+            chartPlaceholder.style.display = 'none'; resultsContent.style.display = 'flex'; finalResultsSummary.textContent = `Here is the distribution of your ${maxSpins} spins:`; let resultsHTML = ''; for (const color in counts) { const percentage = (totalSpins > 0) ? (counts[color] / totalSpins) * 100 : 0; resultsHTML += `<b>${color.charAt(0).toUpperCase() + color.slice(1)}:</b> ${counts[color]} spins (${percentage.toFixed(1)}%)<br>`; } myResultsTextDiv.innerHTML = resultsHTML; const labels = Object.keys(counts); const data = Object.values(counts); createPieChart('myResultsChart', labels, data);
+        }
+        function resetExperiment() {
+      if (!confirm("Are you sure you want to start over? This will reset your Group Name and all counts.")) {
+          return;
+      }
+      document.querySelectorAll('.custom-slice').forEach(el => el.remove());
+      totalSpins = 0;
+      counts = { ...defaultCounts };
+      chartColors = { ...defaultChartColors };
+      currentGroupId = null;
+      maxSpins = 20;
+      updateTally();
+      resultsContent.style.display = 'none';
+      chartPlaceholder.style.display = 'flex';
+      if (window['myResultsChart_chart']) {
+          window['myResultsChart_chart'].destroy();
+      }
+      groupIdInput.disabled = false;
+      groupIdInput.value = '';
+      maxSpinsInput.disabled = false;
+      maxSpinsInput.value = '20';
+      settingsBtn.disabled = false;
+      settingsDisplay.style.display = 'none';
+
+
+      buttonContainer.classList.remove('active');
+      addSliceContainer.classList.remove('active');
+      resetBtnContainer.classList.remove('active');
+
+      if (window['combinedChart_chart']) {
+          window['combinedChart_chart'].destroy();
+          combinedResultsView.style.display = 'none';
+      }
+      switchTab('my-experiment');
+  }
+        function handleButtonActions(event) {
+            const target = event.target;
+            const color = target.dataset.color;
+            if (target.matches('.op-btn')) {
+                updateCount(color, target.classList.contains('plus-btn'));
+            } else if (target.matches('.remove-btn')) {
+                removeCustomSlice(color);
+            }
+        }
+        function updateCount(color, isPlus) {
+            if (!currentGroupId) { alert("Please set your Group Name and Total Spins first!"); return; }
+            if (isPlus) { if (totalSpins >= maxSpins) { alert(`You have already reached the target of ${maxSpins} spins.`); return; } totalSpins++; counts[color]++; sendSpinUpdate(currentGroupId, color, 'add'); } else { if (counts[color] > 0) { totalSpins--; counts[color]--; sendSpinUpdate(currentGroupId, color, 'remove'); } }
+            updateTally(); if (totalSpins >= maxSpins) { showFinalResults(); }
+        }
+        function updateTally() {
+            spinCounter.textContent = `Total Spins: ${totalSpins} / ${maxSpins}`;
+            for (const color in counts) {
+                const safeId = color.replace(/\s/g, '-');
+                const span = document.getElementById(`${safeId}-count`);
+                if (span) {
+                    span.textContent = counts[color];
+                }
+            }
+            updateTallyChart();
+        }
+        function updateTallyChart() {
+            const firstColumn = tallyChartContainer.querySelector('.tally-column');
+            if (!firstColumn) return;
+            const containerHeight = firstColumn.clientHeight;
+            const maxIconSize = 30;
+            const minIconSize = 4;
+            const margin = 2;
+            Object.keys(counts).forEach(color => {
+                const safeId = color.replace(/\s/g, '-');
+                const column = document.getElementById(`${safeId}-tally-column`);
+                if (!column) return;
+                const count = counts[color];
+                column.innerHTML = '';
+                if (count === 0) return;
+                let idealSize = (containerHeight / count) - margin;
+                const finalSize = Math.max(minIconSize, Math.min(maxIconSize, idealSize));
+                for (let i = 0; i < count; i++) {
+                    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    svg.setAttribute("viewBox", "0 0 50 50");
+                    svg.style.width = `${finalSize}px`;
+                    svg.style.height = `${finalSize}px`;
+                    svg.style.marginBottom = `${margin}px`;
+                    svg.style.flexShrink = '0';
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("d", "M10 10 L40 40 M40 10 L10 40");
+                    path.setAttribute("stroke", chartColors[color] || '#000000');
+                    path.setAttribute("stroke-width", "12");
+                    path.setAttribute("stroke-linecap", "round");
+                    path.setAttribute("fill", "none");
+                    svg.appendChild(path);
+                    column.appendChild(svg);
+                }
+            });
+        }
+        function switchTab(tabName) {
+            if (tabName === 'my-experiment') {
+                myExperimentTab.classList.add('active'); allResultsTab.classList.remove('active');
+                myExperimentView.classList.add('active'); allResultsView.classList.remove('active');
+            } else {
+                myExperimentTab.classList.remove('active'); allResultsTab.classList.add('active');
+                myExperimentView.classList.remove('active'); allResultsView.classList.add('active');
+                fetchAllResults();
+            }
+        }
+        function appendRowToTable(groupId, results) {
+            const tableBody = document.querySelector("#results-table tbody");
+            const newRow = tableBody.insertRow();
+            const total = Object.values(results).reduce((sum, count) => sum + count, 0);
+            const cellCheckbox = newRow.insertCell();
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox'; checkbox.className = 'group-checkbox'; checkbox.dataset.groupId = groupId;
+            cellCheckbox.appendChild(checkbox);
+            newRow.insertCell().textContent = groupId;
+            newRow.insertCell().textContent = total;
+            newRow.insertCell().textContent = results.orange || 0;
+            newRow.insertCell().textContent = results.blue || 0;
+            newRow.insertCell().textContent = results.green || 0;
+            newRow.insertCell().textContent = results.yellow || 0;
+        }
         function addGroupManually() {
             const groupNameInput = document.getElementById('manual-group-name');
             const orangeInput = document.getElementById('manual-orange');
             const blueInput = document.getElementById('manual-blue');
             const greenInput = document.getElementById('manual-green');
             const yellowInput = document.getElementById('manual-yellow');
-
             const groupName = groupNameInput.value.trim();
-            if (!groupName) {
-                alert("Please enter a group name.");
-                return;
-            }
-            if (allResultsData.hasOwnProperty(groupName)) {
-                alert("A group with this name already exists. Please choose a different name.");
-                return;
-            }
-
-            const results = {
-                orange: parseInt(orangeInput.value) || 0,
-                blue: parseInt(blueInput.value) || 0,
-                green: parseInt(greenInput.value) || 0,
-                yellow: parseInt(yellowInput.value) || 0,
-            };
-
+            if (!groupName) { alert("Please enter a group name."); return; }
+            if (allResultsData.hasOwnProperty(groupName)) { alert("A group with this name already exists."); return; }
+            const results = { orange: parseInt(orangeInput.value) || 0, blue: parseInt(blueInput.value) || 0, green: parseInt(greenInput.value) || 0, yellow: parseInt(yellowInput.value) || 0, };
             allResultsData[groupName] = results;
             appendRowToTable(groupName, results);
-
-            groupNameInput.value = '';
-            orangeInput.value = 0;
-            blueInput.value = 0;
-            greenInput.value = 0;
-            yellowInput.value = 0;
+            groupNameInput.value = ''; orangeInput.value = 0; blueInput.value = 0; greenInput.value = 0; yellowInput.value = 0;
         }
-
         function combineSelectedResults() {
             const selectedCheckboxes = document.querySelectorAll('#results-table .group-checkbox:checked');
-            if (selectedCheckboxes.length === 0) {
-                alert("Please select at least one group to combine and display.");
-                return;
-            }
+            if (selectedCheckboxes.length === 0) { alert("Please select at least one group to combine and display."); return; }
             const combinedCounts = { orange: 0, blue: 0, green: 0, yellow: 0 };
             let totalCombinedSpins = 0;
             const selectedGroupIds = [];
@@ -463,19 +917,36 @@
                 const groupData = allResultsData[groupId];
                 if (groupData) {
                     for (const color in groupData) {
-                        combinedCounts[color] += groupData[color];
-                        totalCombinedSpins += groupData[color];
+                        if (combinedCounts.hasOwnProperty(color)) {
+                            const count = groupData[color] || 0;
+                            combinedCounts[color] += count;
+                        }
                     }
                 }
             });
+            totalCombinedSpins = Object.values(combinedCounts).reduce((a, b) => a + b, 0);
+            const summaryDiv = document.getElementById('combined-summary-text');
+            let summaryHTML = '<h4>Data Summary</h4>';
+            for (const color in combinedCounts) {
+                const count = combinedCounts[color];
+                const percentage = (totalCombinedSpins > 0) ? (count / totalCombinedSpins) * 100 : 0;
+                const colorName = color.charAt(0).toUpperCase() + color.slice(1);
+                summaryHTML += `<p><strong style="color:${defaultChartColors[color]}">${colorName}:</strong> ${count} spins (${percentage.toFixed(1)}%)</p>`;
+            }
+            summaryDiv.innerHTML = summaryHTML;
             combinedInfo.textContent = `Combined results from Groups: ${selectedGroupIds.join(', ')} (${totalCombinedSpins} total spins)`;
             combinedResultsView.style.display = 'block';
             const labels = Object.keys(combinedCounts);
             const data = Object.values(combinedCounts);
             createPieChart('combinedChart', labels, data);
         }
-
-        function createPieChart(canvasId, labels, data) { const ctx = document.getElementById(canvasId).getContext('2d'); if (window[canvasId+'_chart']) { window[canvasId+'_chart'].destroy(); } window[canvasId+'_chart'] = new Chart(ctx, { type: 'pie', data: { labels: labels.map(l => l.charAt(0).toUpperCase() + l.slice(1)), datasets: [{ label: 'Spin Results', data: data, backgroundColor: labels.map(l => chartColors[l]), borderColor: '#fff', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } } }); }
+        function createPieChart(canvasId, labels, data) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            if (window[canvasId+'_chart']) { window[canvasId+'_chart'].destroy(); }
+            const options = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } };
+            if (canvasId === 'combinedChart') { options.plugins.legend.display = false; }
+            window[canvasId+'_chart'] = new Chart(ctx, { type: 'pie', data: { labels: labels.map(l => l.charAt(0).toUpperCase() + l.slice(1)), datasets: [{ label: 'Spin Results', data: data, backgroundColor: labels.map(l => chartColors[l] || '#cccccc'), borderColor: '#fff', borderWidth: 2 }] }, options: options });
+        }
     </script>
 </body>
 </html>
