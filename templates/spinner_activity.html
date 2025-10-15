@@ -153,14 +153,26 @@
         #combined-summary-text p {
             margin: 6px 0; 
         }
-        .combined-layout-container {
-            gap: 15px; /* Reduces the space between the text and the chart */
+        /* .combined-layout-container {
+            gap: 15px; 
             margin-top: 10px;
-        }        #combined-placeholder { color: #888; padding: 50px 20px; }
+        }        */
+        
+        #combined-placeholder { color: #888; padding: 50px 20px; }
 
-        .combined-layout-container { display: flex; flex-direction: row; align-items: center; gap: 30px; margin-top: 20px; }
+        /* .combined-layout-container { display: flex; flex-direction: row; align-items: center; gap: 30px; margin-top: 20px; } */
         #combined-summary-text { flex: 1; text-align: left; font-size: 1.1em; line-height: 1.6; padding: 20px; background-color: #f9f9f9; border-radius: 8px; }
-
+        #combined-placeholder { 
+            color: #888; 
+            padding: 50px 20px; 
+        }
+        .combined-layout-container { 
+            display: flex; 
+            flex-direction: row; 
+            align-items: center; 
+            gap: 15px; 
+            margin-top: 10px; 
+        }
    
     #welcome-container {
         display: flex;
@@ -221,6 +233,30 @@
     #welcome-start-btn:hover {
         background-color: #27ae60;
     }
+
+
+    @media (max-width: 800px) {
+    body {
+        padding: 10px; /* Reduce padding on small screens */
+    }
+
+    /* Stack the main content columns vertically */
+    #experiment-content, .all-results-layout {
+        flex-direction: column;
+    }
+
+    /* Stack the mode description boxes vertically */
+    .mode-description {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Make the right panel's sticky positioning work better in a single column */
+    .all-results-right {
+        position: static;
+        width: 100%;
+    }
+}
 </style>
 </head>
 <body>
