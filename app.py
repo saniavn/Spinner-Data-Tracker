@@ -108,6 +108,25 @@ def dashboard(classroom_code):
                            summary=summary_dict,
                            total_spins=total_spins,
                            classroom_name=classroom_code)
+@app.route('/api/clear_spins', methods=['POST'])
+def clear_spins():
+    data = request.get_json()
+    classroom_code = data.get('classroom_code')
+    group_name = data.get('group_id') # Matches the key from your JavaScript
+
+    if not all([classroom_code, group_name]):
+        return jsonify({'status': 'error', 'message': 'Missing data'}), 400
+
+    conn = get_db_connection()
+    conn.execute(
+        'DELETE FROM spins WHERE classroom_code = ? AND group_name = ?',
+        (classroom_code, group_name)
+    )
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'status': 'success', 'message': f'Data for group {group_name} cleared.'})
+
 
 if __name__ == '__main__':
     init_db()
