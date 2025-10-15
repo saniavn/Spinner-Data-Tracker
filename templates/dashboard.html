@@ -67,10 +67,9 @@
                 <div class="group-card">
                     <h3>Group {{ group_id }}</h3>
                     <ul>
-                        <li><span>Orange:</span> <span class="count">{{ results.orange }}</span></li>
-                        <li><span>Blue:</span> <span class="count">{{ results.blue }}</span></li>
-                        <li><span>Green:</span> <span class="count">{{ results.green }}</span></li>
-                        <li><span>Yellow:</span> <span class="count">{{ results.yellow }}</span></li>
+                        {% for color, count in results.items()|sort %}
+                            <li><span>{{ color|capitalize }}:</span> <span class="count">{{ count }}</span></li>
+                        {% endfor %}
                     </ul>
                 </div>
             {% endfor %}

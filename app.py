@@ -67,52 +67,29 @@ def api_results():
     rows = conn.execute('SELECT * FROM spins WHERE classroom_code = ?', (classroom_code,)).fetchall()
     conn.close()
 
+    # Step 1: Create a summary of results for each group
     summary = defaultdict(lambda: defaultdict(int))
-    total_spins = len(rows)
     for row in rows:
         summary[row['group_name']][row['color']] += 1
+    
+    # Step 2: Group the summaries by their "signature" (the set of colors used)
+    grouped_experiments = defaultdict(lambda: {'colors': set(), 'results': {}})
+    for group_name, results in summary.items():
+        if not results: continue
+        signature = ",".join(sorted(results.keys()))
+        grouped_experiments[signature]['results'][group_name] = results
+        grouped_experiments[signature]['colors'].update(results.keys())
 
-    summary_dict = {k: dict(v) for k, v in summary.items()}
-    return jsonify({'summary': summary_dict, 'total_spins': total_spins})
+    # Step 3: Format the data for the frontend
+    experiments_list = []
+    for signature, data in grouped_experiments.items():
+        experiments_list.append({
+            'signature': signature,
+            'colors': sorted(list(data['colors'])),
+            'results': data['results']
+        })
 
-# API Endpoint to Delete Data
-@app.route('/api/delete_class_data', methods=['POST'])
-def delete_class_data():
-    data = request.get_json()
-    classroom_code = data.get('classroom_code')
-    if not classroom_code:
-        return jsonify({'status': 'error', 'message': 'Classroom code is required.'}), 400
-
-    conn = get_db_connection()
-    conn.execute('DELETE FROM spins WHERE classroom_code = ?', (classroom_code,))
-    conn.commit()
-    conn.close()
-
-    print(f"DELETED all data for classroom: {classroom_code}")
-    return jsonify({'status': 'success', 'message': 'All data for the class has been deleted.'})
-
-# API Endpoint to Download Data
-@app.route('/api/download_class_data/<classroom_code>')
-def download_class_data(classroom_code):
-    conn = get_db_connection()
-    rows = conn.execute('SELECT group_name, color, timestamp FROM spins WHERE classroom_code = ? ORDER BY timestamp', (classroom_code,)).fetchall()
-    conn.close()
-
-    # Use a string stream to build the CSV in memory
-    si = io.StringIO()
-    cw = csv.writer(si)
-
-    # Write header and rows
-    cw.writerow(['group_name', 'color', 'timestamp'])
-    cw.writerows(rows)
-
-    output = si.getvalue()
-
-    return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-disposition": f"attachment; filename={classroom_code}_results.csv"}
-    )
+    return jsonify({'experiments': experiments_list})
 
 @app.route('/dashboard/<classroom_code>')
 def dashboard(classroom_code):
