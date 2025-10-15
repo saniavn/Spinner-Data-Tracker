@@ -97,7 +97,18 @@
         .tally-label { margin-top: 8px; font-weight: bold; font-size: 0.9em; }
         
         /* STyle start */
-        .table-container { width: 100%; overflow-x: auto; margin-bottom: 20px; max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: auto; 
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            flex: 1; 
+            min-height: 0;
+        }
+        /* .table-container { width: 100%; overflow-x: auto; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;flex: 1; min-height: 0;} */
+        /* .table-container { width: 100%; overflow-x: auto; margin-bottom: 20px; max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; } */
         #results-table { width: 100%; border-collapse: collapse; text-align: center; }
         #results-table th, #results-table td { padding: 12px 8px; border: 1px solid #ddd; }
         #results-table thead { background-color: #3498db; color: white; }
@@ -130,7 +141,7 @@
         #delete-selected-btn { background-color: #c0392b; }
 
         .all-results-layout { display: flex; flex-direction: row; gap: 30px; align-items: flex-start; }
-        .all-results-left { flex: 1.5; }
+        .all-results-left { flex: 1.5;display: flex; flex-direction: column; max-height: 55vh;}
         .all-results-right { flex: 1; position: sticky; top: 20px; }
         #combined-results-view {
             height: 480px; /* Sets a fixed height for the container */
@@ -257,6 +268,32 @@
         width: 100%;
     }
 }
+
+
+#my-experiment-view .chart-container {
+    max-width: 320px;
+    height: 320px;
+}
+.final-results-layout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px; /* Space between text and chart */
+    width: 100%;
+    margin-top: 20px;
+}
+
+.final-results-layout #my-results-text {
+    flex: 1; 
+    text-align: left !important; /* Ensures text is left-aligned */
+}
+
+
+.final-results-layout .chart-container {
+    flex: 1.2; 
+    max-width: 300px;
+    height: 300px;
+}
 </style>
 </head>
 <body>
@@ -342,8 +379,12 @@
                         <div id="results-content" style="display: none;">
                             <h2 id="final-results-title">Final Results!</h2>
                             <p id="final-results-summary"></p>
-                            <div id="my-results-text" style="text-align: left; margin-bottom: 15px;"></div>
-                            <div class="chart-container"> <canvas id="myResultsChart"></canvas> </div>
+                            <div class="final-results-layout">
+                                <div id="my-results-text" style="text-align: left; margin-bottom: 15px;"></div>
+                                <div class="chart-container"> <canvas id="myResultsChart"></canvas> </div>
+                            </div>
+                            <!-- <div id="my-results-text" style="text-align: left; margin-bottom: 15px;"></div>
+                            <div class="chart-container"> <canvas id="myResultsChart"></canvas> </div> -->
                         </div>
                     </div>
                 </div>
