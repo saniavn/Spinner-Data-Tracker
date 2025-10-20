@@ -56,9 +56,20 @@
 
         #custom-spinner-setup { padding: 20px; border: 2px dashed #a5d6a7; border-radius: 15px; margin-bottom: 20px; background-color: #f8fdf8; }
         #slice-definitions-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
-        .slice-definition { display: flex; gap: 10px; align-items: center; }
+        .slice-definition { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+            width: fit-content; /* Contain the content */
+            padding: 8px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: white;
+        }
         .slice-definition input[type="text"] { width: 150px; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
-        .slice-definition input[type="color"] { width: 50px; height: 38px; padding: 2px; }
+        
+        /* Removed .slice-definition input[type="color"] since we're using a fixed palette */
+
 
         .tab-btn { padding: 10px 20px; border: none; background-color: transparent; font-size: 22px; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
         #button-container { opacity: 0.5; pointer-events: none; transition: opacity 0.3s ease-in-out; }
@@ -328,7 +339,7 @@
                 </div>
                 <div>
                     <h4>Custom Spinner</h4>
-                    <p>You decide the number of slices, their names, and their colors. Perfect for personalized experiments!</p>
+                    <p>You decide the number of slices (up to 15) and their names. Colors are automatically assigned for consistency.</p>
                 </div>
             </div>
         </div>
@@ -347,7 +358,7 @@
                     <h3>Step 2: Design Your Spinner</h3>
                     <div class="setting-group">
                         <label for="num-slices-input">Number of Slices:</label>
-                        <input type="number" id="num-slices-input" value="2" min="2" max="12">
+                        <input type="number" id="num-slices-input" value="2" min="2" max="15">
                         <button id="generate-slice-fields-btn">Set Slices</button>
                     </div>
                     <div id="slice-definitions-container"></div>
@@ -383,9 +394,7 @@
                                 <div id="my-results-text" style="text-align: left; margin-bottom: 15px;"></div>
                                 <div class="chart-container"> <canvas id="myResultsChart"></canvas> </div>
                             </div>
-                            <!-- <div id="my-results-text" style="text-align: left; margin-bottom: 15px;"></div>
-                            <div class="chart-container"> <canvas id="myResultsChart"></canvas> </div> -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
@@ -407,7 +416,6 @@
                             </table>
                         </div>
                         <div id="combine-controls">
-                            <button id="combine-btn">Combine Selected</button>
                             <button id="delete-selected-btn">Delete Selected</button>
                             <button id="download-all-btn">Download All Data</button>
                         </div>
@@ -425,11 +433,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="all-results-right">
+                    <div id="all-results-right" class="all-results-right">
                         <div id="combined-results-view">
                             <h3>Combined Results</h3>
                             <div id="combined-placeholder">
-                                <p>Select groups from the table and click "Combine Selected" to see an aggregated chart here.</p>
+                                <p>Select group(s) from the table to see a dynamic aggregated chart here.</p>
                             </div>
                             <div id="combined-content" style="display:none;">
                                 <p id="combined-info"></p>
@@ -446,8 +454,33 @@
     </div>
 
     <script>
+        // EXPANDED ACCESSIBLE COLOR PALETTE (15 Colors)
+        // These colors are chosen for maximum contrast and distinction (consistency)
+        const ACCESSIBLE_COLOR_PALETTE = [
+            { name: "Blue", hex: "#0072B2" },       // 1. Strong Blue
+            { name: "Orange", hex: "#D55E00" },     // 2. Strong Orange
+            { name: "Green", hex: "#009E73" },      // 3. Strong Teal/Green
+            { name: "Yellow", hex: "#F0E442" },     // 4. Bright Yellow
+            { name: "Sky Blue", hex: "#56B4E9" },   // 5. Lighter Blue
+            { name: "Red-Purple", hex: "#CC79A7" }, // 6. Pink/Red-Purple
+            { name: "Violet", hex: "#E69F00" },     // 7. Dark Yellow/Mustard
+            { name: "Dark Gray", hex: "#333333" },  // 8. Dark Neutral
+            { name: "Light Green", hex: "#99CC66" },// 9. Lime Green
+            { name: "Light Red", hex: "#FF6666" },  // 10. Light Red/Salmon
+            { name: "Purple", hex: "#9933CC" },     // 11. Deep Purple
+            { name: "Brown", hex: "#B46500" },      // 12. Dark Brown
+            { name: "Teal", hex: "#44AA99" },       // 13. Muted Teal
+            { name: "Fuchsia", hex: "#EE3377" },    // 14. Bright Pink/Fuchsia
+            { name: "Cyan", hex: "#66CCEE" }        // 15. Light Cyan
+        ];
+        // The max number of slices is now 15.
+
+
         let currentClassCode = null, currentMode = 'fixed', maxSpins = 20, currentGroupId = null;
         let counts = {}, chartColors = {}, totalSpins = 0, allResultsData = {};
+        // Map to hold the display name for each key (in case custom names are used)
+        let colorDisplayNameMap = {}; 
+
         const welcomeContainer = document.getElementById('welcome-container');
         const appContainer = document.getElementById('app-container');
         const welcomeCodeInput = document.getElementById('welcome-code-input');
@@ -478,21 +511,13 @@
         const allResultsTab = document.getElementById('all-results-tab');
         const myExperimentView = document.getElementById('my-experiment-view');
         const allResultsView = document.getElementById('all-results-view');
+        const resultsTable = document.getElementById('results-table');
         const manualEntryDiv = document.getElementById('manual-entry');
         const addGroupBtn = document.getElementById('add-group-btn');
-        const combineBtn = document.getElementById('combine-btn');
         const deleteSelectedBtn = document.getElementById('delete-selected-btn'); 
         const downloadAllBtn = document.getElementById('download-all-btn'); 
         
         //Initial Setup & Event Listeners
-        // window.addEventListener('load', () => {
-        //     while (!currentClassCode) {
-        //         currentClassCode = prompt("Please enter your Classroom Code:");
-        //         if (currentClassCode) { currentClassCode = currentClassCode.trim().toUpperCase(); }
-        //     }
-        //     document.getElementById('classroom-code-display').textContent = currentClassCode;
-        //     document.getElementById('classroom-header').style.display = 'block';
-        // });
         function initializeApp() {
             const code = welcomeCodeInput.value.trim().toUpperCase();
             if (!code) {
@@ -533,15 +558,23 @@
         myExperimentTab.addEventListener('click', () => switchTab('my-experiment'));
         allResultsTab.addEventListener('click', () => switchTab('all-results'));
         addGroupBtn.addEventListener('click', addGroupManually);
-        combineBtn.addEventListener('click', combineSelectedResults);
         deleteSelectedBtn.addEventListener('click', deleteSelectedRows); 
         downloadAllBtn.addEventListener('click', downloadAllResultsCSV); 
+        
+        // Dynamic update on checkbox change
+        resultsTable.addEventListener('change', (event) => {
+            if (event.target.classList.contains('group-checkbox')) {
+                combineSelectedResults();
+            }
+        });
+
 
         // set up mode
         function setupMode(mode) {
             currentMode = mode;
             modeSelectionDiv.style.display = 'none';
             mainContent.style.display = 'block';
+            numSlicesInput.max = ACCESSIBLE_COLOR_PALETTE.length; // Set max slices based on palette size
 
             if (mode === 'fixed') {// fixed mode
                 customSpinnerSetupDiv.style.display = 'none';
@@ -607,8 +640,11 @@
 
         function buildFixedSpinner() {
             clearSpinnerUI();
-            addSliceToUI('Orange', '#ff9f43'); addSliceToUI('Blue', '#3498db');
-            addSliceToUI('Green', '#2ecc71'); addSliceToUI('Yellow', '#f1c40f');
+            // Use the standard fixed colors, mapping to the new palette for consistency
+            addSliceToUI('Orange', ACCESSIBLE_COLOR_PALETTE.find(c => c.name === 'Orange').hex);
+            addSliceToUI('Blue', ACCESSIBLE_COLOR_PALETTE.find(c => c.name === 'Blue').hex);
+            addSliceToUI('Green', ACCESSIBLE_COLOR_PALETTE.find(c => c.name === 'Green').hex);
+            addSliceToUI('Yellow', ACCESSIBLE_COLOR_PALETTE.find(c => c.name === 'Yellow').hex);
         }
 
         async function fetchAllResults() {
@@ -641,9 +677,26 @@
 
                 const tableBody = document.querySelector("#results-table tbody");
                 tableBody.innerHTML = '';
+                
+                let ownGroupFound = false;
 
                 for (const groupId in allResultsData) {
                     appendRowToTable(groupId, allResultsData[groupId], colors);
+                    // Check if this is the current user's group
+                    if (currentGroupId && groupId === currentGroupId) {
+                        ownGroupFound = true;
+                    }
+                }
+                
+                // Auto-select own group and update chart
+                if (ownGroupFound) {
+                    const ownGroupCheckbox = document.querySelector(`.group-checkbox[data-group-id="${currentGroupId}"]`);
+                    if (ownGroupCheckbox) {
+                        ownGroupCheckbox.checked = true;
+                        combineSelectedResults(); // Display the combined result immediately
+                    }
+                } else if (Object.keys(allResultsData).length > 0) {
+                     combineSelectedResults();
                 }
 
             } catch (error) {
@@ -658,7 +711,8 @@
             headerRow.innerHTML = '<th>Select</th><th>Group Name</th><th>Total Spins</th>';
             colors.forEach(color => {
                 const th = document.createElement('th');
-                th.textContent = getOriginalDisplayName(color);
+                // Use the display name from the map if available, otherwise just capitalize the key
+                th.textContent = colorDisplayNameMap[color] || color.charAt(0).toUpperCase() + color.slice(1); 
                 headerRow.appendChild(th);
             });
         }
@@ -737,42 +791,33 @@
                 const groupId = checkbox.dataset.groupId;
                 const rowElement = checkbox.closest('tr');
 
-                // Prepare server deletion
-                const signature = Object.keys(allResultsData[groupId] || {}).sort().join(',');
-                if(signature) {
-                    const promise = fetch('/api/clear_spins', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            classroom_code: currentClassCode,
-                            group_id: groupId,
-                            signature: signature
-                        })
-                    }).then(() => {
-                        // On successful deletion from server, update client
-                        delete allResultsData[groupId];
-                        rowElement.remove();
-                    }).catch(error => {
-                        console.error(`Failed to delete group ${groupId} on server:`, error);
-                    });
-                    deletionPromises.push(promise);
-                } else {
-                     // If it's just a manually added group not on server, remove it locally
-                     delete allResultsData[groupId];
-                     rowElement.remove();
-                }
+                
+                const promise = fetch('/api/clear_spins', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        classroom_code: currentClassCode,
+                        group_id: groupId,
+                    })
+                }).then(() => {
+                    // On successful deletion from server, update client
+                    delete allResultsData[groupId];
+                    rowElement.remove();
+                }).catch(error => {
+                    console.error(`Failed to delete group ${groupId} on server:`, error);
+                });
+                deletionPromises.push(promise);
             });
 
             await Promise.all(deletionPromises);
             alert(`${selectedCheckboxes.length} group(s) have been deleted.`);
+            combineSelectedResults(); // Update the chart after deletion
         }
 
         function getOriginalDisplayName(key) {
-            for (const nameKey in chartColors) {
-                if (nameKey.toLowerCase() === key) {
-                    const labelElement = document.querySelector(`.color-label[style*="${chartColors[nameKey]}"]`);
-                    if (labelElement) return labelElement.textContent.trim();
-                }
+            // 1. Local map (for custom names), 2. Default capitalization.
+            if (colorDisplayNameMap[key]) {
+                return colorDisplayNameMap[key];
             }
             return key.charAt(0).toUpperCase() + key.slice(1);
         }
@@ -780,6 +825,7 @@
         function generateManualEntryFields(colors) {
             const container = document.getElementById('dynamic-manual-inputs');
             container.innerHTML = '';
+            // colors is chartColors, which is {key: hex}. The key is the lowercase name.
             for (const colorKey in colors) {
                 const displayName = getOriginalDisplayName(colorKey);
                 const fieldGroup = document.createElement('div');
@@ -816,16 +862,14 @@
             const results = {};
             manualInputs.forEach(input => {
                 const colorKey = input.dataset.colorKey;
-                // Using Number() for a robust way to ensure store a number, not a string.
+                // Using Number() a robust way to ensure store a number, not a string
                 results[colorKey] = Number(input.value) || 0;
                 input.value = '0';
             });
 
     
-            // Instead of creating a new colorOrder, use the official one from the table header.
-            const headerCells = document.querySelectorAll('#results-table thead th');
-            // Slice(3) skips "Select", "Group Name", and "Total Spins" columns.
-            const colorOrder = Array.from(headerCells).slice(3).map(th => th.textContent.toLowerCase());
+            // Get the color order from the current chartColors keys
+            const colorOrder = Object.keys(chartColors);
             
             allResultsData[groupName] = results;
             appendRowToTable(groupName, results, colorOrder); // Pass the correct order!
@@ -834,24 +878,21 @@
 
         function combineSelectedResults() {
             const selectedCheckboxes = document.querySelectorAll('#results-table .group-checkbox:checked');
+            
+            const combinedPlaceholder = document.getElementById('combined-placeholder');
+            const combinedContent = document.getElementById('combined-content');
+
             if (selectedCheckboxes.length === 0) {
-                alert("Please select at least one group to combine.");
+                // If no groups are selected, show the placeholder
+                combinedPlaceholder.style.display = 'block';
+                combinedContent.style.display = 'none';
                 return;
             }
-
-            // Check to make sure spinners are the same
+            
+            // Combine and validate selected groups 
             const firstGroupId = selectedCheckboxes[0].dataset.groupId;
             const referenceSignature = Object.keys(allResultsData[firstGroupId] || {}).sort().join(',');
-            for (let i = 1; i < selectedCheckboxes.length; i++) {
-                const groupId = selectedCheckboxes[i].dataset.groupId;
-                const currentSignature = Object.keys(allResultsData[groupId] || {}).sort().join(',');
-                if (referenceSignature !== currentSignature) {
-                    alert("Incompatible groups selected. You can only combine groups that have the exact same set of colors.");
-                    return;
-                }
-            }
-
-
+            
             // Get the canonical list of colors in a fixed order.
             const colorOrder = Object.keys(chartColors);
 
@@ -862,12 +903,24 @@
             });
 
             const selectedGroupIds = [];
+            let incompatibleFound = false;
+            
             selectedCheckboxes.forEach(checkbox => {
                 const groupId = checkbox.dataset.groupId;
+                const currentSignature = Object.keys(allResultsData[groupId] || {}).sort().join(',');
+
+                if (referenceSignature !== currentSignature) {
+                    // Alert the user and uncheck the incompatible box
+                    alert("Incompatible groups selected. You can only combine groups that have the exact same set of colors. Unchecking the last selected group.");
+                    checkbox.checked = false;
+                    incompatibleFound = true;
+                    return; 
+                }
+                
                 selectedGroupIds.push(groupId);
                 const groupData = allResultsData[groupId];
                 if (groupData) {
-                    // Sum the values from the selected group
+                    // Sum values from the selected group
                     for (const color in groupData) {
                         if (combinedCounts.hasOwnProperty(color)) {
                             combinedCounts[color] += groupData[color] || 0;
@@ -875,6 +928,21 @@
                     }
                 }
             });
+            
+            // If the last selected group was incompatible, need to stop and re-run this function
+            // to ensure the chart reflects the *remaining* valid selections
+            if (incompatibleFound) {
+                 // Ensures the chart only shows the valid selection
+                 return combineSelectedResults(); 
+            }
+            
+            // selectedGroupIds contains all valid groups
+            if (selectedGroupIds.length === 0) {
+                combinedPlaceholder.style.display = 'block';
+                combinedContent.style.display = 'none';
+                return;
+            }
+
 
             const totalCombinedSpins = Object.values(combinedCounts).reduce((a, b) => a + b, 0);
             const summaryDiv = document.getElementById('combined-summary-text');
@@ -890,8 +958,9 @@
 
             summaryDiv.innerHTML = summaryHTML;
             document.getElementById('combined-info').textContent = `Combined results from Groups: ${selectedGroupIds.join(', ')} (${totalCombinedSpins} total spins)`;
-            document.getElementById('combined-placeholder').style.display = 'none';
-            document.getElementById('combined-content').style.display = 'block';
+            
+            combinedPlaceholder.style.display = 'none';
+            combinedContent.style.display = 'block';
 
             // Create the chart using the guaranteed colorOrder for labels and data.
             const chartLabels = colorOrder;
@@ -904,40 +973,98 @@
             return Object.keys(chartColors).sort().join(',');
         }
         function generateSliceInputFields() { 
-            const numSlices = parseInt(numSlicesInput.value); sliceDefinitionsContainer.innerHTML = '';
-            if (numSlices >= 2 && numSlices <= 12) {
-                for (let i = 1; i <= numSlices; i++) {
-                    const sliceDiv = document.createElement('div'); sliceDiv.className = 'slice-definition';
-                    const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
-                    sliceDiv.innerHTML = `<label>Slice ${i} Name:</label><input type="text" class="slice-name-input" placeholder="e.g., Red"><label>Color:</label><input type="color" class="slice-color-input" value="${randomColor}">`;
-                    sliceDefinitionsContainer.appendChild(sliceDiv);
-                }
-            } else { alert('Please enter a number between 2 and 12.'); }
+            const numSlices = parseInt(numSlicesInput.value); 
+            sliceDefinitionsContainer.innerHTML = '';
+
+            if (numSlices < 2 || numSlices > ACCESSIBLE_COLOR_PALETTE.length) { 
+                alert(`Please enter a number between 2 and ${ACCESSIBLE_COLOR_PALETTE.length}.`); 
+                return;
+            }
+
+            // Assign colors from the palette sequentially
+            for (let i = 0; i < numSlices; i++) {
+                const sliceDiv = document.createElement('div'); 
+                sliceDiv.className = 'slice-definition';
+                const assignedColor = ACCESSIBLE_COLOR_PALETTE[i].hex;
+                const defaultName = ACCESSIBLE_COLOR_PALETTE[i].name;
+
+                // No longer using the color input field
+                sliceDiv.innerHTML = `
+                    <div style="background-color: ${assignedColor}; color: white; padding: 5px 10px; border-radius: 5px;">Color: ${defaultName}</div>
+                    <label>Slice Name:</label>
+                    <input type="text" class="slice-name-input" placeholder="e.g., ${defaultName}" value="${defaultName}">
+                    <input type="hidden" class="slice-color-value" value="${assignedColor}">
+                `;
+                sliceDefinitionsContainer.appendChild(sliceDiv);
+            }
         }
+        
         function buildCustomSpinner() { 
-            const sliceInputs = document.querySelectorAll('.slice-definition'); if (sliceInputs.length === 0) { alert("Please design your spinner slices first by clicking 'Set Slices'."); return false; }
-            clearSpinnerUI(); const names = new Set();
+            const sliceInputs = document.querySelectorAll('.slice-definition'); 
+            if (sliceInputs.length === 0) { 
+                alert("Please design your spinner slices first by clicking 'Set Slices'."); 
+                return false; 
+            }
+            
+            clearSpinnerUI(); 
+            const names = new Set();
+            
             for (const slice of sliceInputs) {
-                const nameInput = slice.querySelector('.slice-name-input'); const rawName = nameInput.value.trim();
-                if (!rawName) { alert('All slice names must be filled in.'); clearSpinnerUI(); return false; }
+                const nameInput = slice.querySelector('.slice-name-input'); 
+                const colorValueInput = slice.querySelector('.slice-color-value'); 
+                
+                const rawName = nameInput.value.trim();
+                const colorValue = colorValueInput.value;
+
+                if (!rawName) { 
+                    alert('All slice names must be filled in.'); 
+                    clearSpinnerUI(); 
+                    return false; 
+                }
+                
                 const keyName = rawName.toLowerCase();
-                if (names.has(keyName)) { alert(`Duplicate slice name found: "${rawName}". Please use unique names.`); clearSpinnerUI(); return false; }
-                names.add(keyName); addSliceToUI(rawName, slice.querySelector('.slice-color-input').value);
-            } return true;
+                
+                if (names.has(keyName)) { 
+                    alert(`Duplicate slice name found: "${rawName}". Please use unique names.`); 
+                    clearSpinnerUI(); 
+                    return false; 
+                }
+                
+                names.add(keyName); 
+                addSliceToUI(rawName, colorValue);
+            } 
+            return true;
         }
+        
         function addSliceToUI(displayName, colorValue) {
-            const nameKey = displayName.toLowerCase(); counts[nameKey] = 0; chartColors[nameKey] = colorValue;
-            const newControl = document.createElement('div'); newControl.className = 'color-control';
-            newControl.innerHTML = `<button class="op-btn minus-btn" data-color="${nameKey}">-</button><div class="color-label" style="background-color: ${colorValue};"> ${displayName} </div><button class="op-btn plus-btn" data-color="${nameKey}">+</button>`;
+            const nameKey = displayName.toLowerCase(); 
+            counts[nameKey] = 0; 
+            chartColors[nameKey] = colorValue;
+            colorDisplayNameMap[nameKey] = displayName; // Store the original display name
+
+            const newControl = document.createElement('div'); 
+            newControl.className = 'color-control';
+            newControl.innerHTML = `
+                <button class="op-btn minus-btn" data-color="${nameKey}">-</button>
+                <div class="color-label" style="background-color: ${colorValue};"> ${displayName} </div>
+                <button class="op-btn plus-btn" data-color="${nameKey}">+</button>`;
             buttonContainer.appendChild(newControl);
-            const newTallyWrapper = document.createElement('div'); newTallyWrapper.className = 'tally-column-wrapper';
+
+            const newTallyWrapper = document.createElement('div'); 
+            newTallyWrapper.className = 'tally-column-wrapper';
             newTallyWrapper.innerHTML = `<div class="tally-column" id="${nameKey.replace(/\s/g, '-')}-tally-column"></div><div class="tally-label">${displayName}</div>`;
             tallyChartContainer.appendChild(newTallyWrapper);
         }
+        
         function clearSpinnerUI() { 
-            counts = {}; chartColors = {}; buttonContainer.innerHTML = ''; tallyChartContainer.innerHTML = '';
+            counts = {}; 
+            chartColors = {}; 
+            colorDisplayNameMap = {}; // Reset the map
+            buttonContainer.innerHTML = ''; 
+            tallyChartContainer.innerHTML = '';
             updateResultsTableHeader([]);
         }
+        
         function resetExperimentData() { 
             if (!confirm("Are you sure? This will reset the counts and group name, allowing a new group to start.")) return;
             clearSpinsOnServer(currentGroupId);
@@ -950,8 +1077,6 @@
         }
         async function clearSpinsOnServer(groupIdToClear) {
             if (!groupIdToClear || !currentClassCode) return;
-            const signature = getCurrentSignature();
-            if (!signature) return;
             try {
                 await fetch('/api/clear_spins', {
                     method: 'POST',
@@ -959,11 +1084,10 @@
                     body: JSON.stringify({
                         classroom_code: currentClassCode,
                         group_id: groupIdToClear,
-                        signature: signature
                     })
                 });
             } catch (error) {
-                console.error("Failed to clear spins on server:", error);
+                console.error(`Failed to clear spins on server for group ${groupIdToClear}:`, error);
             }
         }
         function handleSpinAction(event) { 
@@ -1010,22 +1134,16 @@
         }
         async function sendSpinUpdate(groupId, color, action) {
             if (!currentClassCode) return;
-            const signature = getCurrentSignature();
-            if (!signature) {
-                console.error("Cannot send update, spinner not configured.");
-                return;
-            }
             try {
+                // Note: The Flask endpoint uses 'color' for the key, which is the lowercase name.
                 await fetch('/update_spin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         group_id: groupId,
-                        color: color,
+                        color: color, // The key (lowercase name)
                         action: action,
                         classroom_code: currentClassCode,
-                        signature: signature,
-                        colors: chartColors // <-- This new line fixes the problem
                     }),
                 });
             } catch (error) {
