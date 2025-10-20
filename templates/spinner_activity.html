@@ -6,6 +6,28 @@
     <title>Spinner Data Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+      
+        #logout-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        #logout-btn {
+            padding: 10px 15px;
+            font-size: 1em;
+            background-color: #c0392b; /* Red color */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: bold;
+        }
+        #logout-btn:hover {
+            background-color: #e74c3c;
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -308,7 +330,10 @@
 </style>
 </head>
 <body>
- <div id="welcome-container">
+<div id="logout-container" style="display: none;">
+    <button id="logout-btn">Log Out</button>
+</div>
+<div id="welcome-container">
         <div class="welcome-content">
             <h1>Welcome to the Interactive Spinner!</h1>
             <p>This tool helps us track the spinner activites. Please enter your classroom code provided by your teacher to get started!</p>
@@ -455,36 +480,35 @@
 
     <script>
         // EXPANDED ACCESSIBLE COLOR PALETTE (15 Colors)
-        // These colors are chosen for maximum contrast and distinction (consistency)
         const ACCESSIBLE_COLOR_PALETTE = [
-            { name: "Blue", hex: "#0072B2" },       // 1. Strong Blue
-            { name: "Orange", hex: "#D55E00" },     // 2. Strong Orange
-            { name: "Green", hex: "#009E73" },      // 3. Strong Teal/Green
-            { name: "Yellow", hex: "#F0E442" },     // 4. Bright Yellow
-            { name: "Sky Blue", hex: "#56B4E9" },   // 5. Lighter Blue
-            { name: "Red-Purple", hex: "#CC79A7" }, // 6. Pink/Red-Purple
-            { name: "Violet", hex: "#E69F00" },     // 7. Dark Yellow/Mustard
-            { name: "Dark Gray", hex: "#333333" },  // 8. Dark Neutral
-            { name: "Light Green", hex: "#99CC66" },// 9. Lime Green
-            { name: "Light Red", hex: "#FF6666" },  // 10. Light Red/Salmon
-            { name: "Purple", hex: "#9933CC" },     // 11. Deep Purple
-            { name: "Brown", hex: "#B46500" },      // 12. Dark Brown
-            { name: "Teal", hex: "#44AA99" },       // 13. Muted Teal
-            { name: "Fuchsia", hex: "#EE3377" },    // 14. Bright Pink/Fuchsia
-            { name: "Cyan", hex: "#66CCEE" }        // 15. Light Cyan
+            { name: "Blue", hex: "#0072B2" },
+            { name: "Orange", hex: "#D55E00" },
+            { name: "Green", hex: "#009E73" },
+            { name: "Yellow", hex: "#F0E442" },
+            { name: "Sky Blue", hex: "#56B4E9" },
+            { name: "Red-Purple", hex: "#CC79A7" },
+            { name: "Violet", hex: "#E69F00" },
+            { name: "Dark Gray", hex: "#333333" },
+            { name: "Light Green", hex: "#99CC66" },
+            { name: "Light Red", hex: "#FF6666" },
+            { name: "Purple", hex: "#9933CC" },
+            { name: "Brown", hex: "#B46500" },
+            { name: "Teal", hex: "#44AA99" },
+            { name: "Fuchsia", hex: "#EE3377" },
+            { name: "Cyan", hex: "#66CCEE" }
         ];
-        // The max number of slices is now 15.
 
 
         let currentClassCode = null, currentMode = 'fixed', maxSpins = 20, currentGroupId = null;
         let counts = {}, chartColors = {}, totalSpins = 0, allResultsData = {};
-        // Map to hold the display name for each key (in case custom names are used)
         let colorDisplayNameMap = {}; 
 
         const welcomeContainer = document.getElementById('welcome-container');
         const appContainer = document.getElementById('app-container');
         const welcomeCodeInput = document.getElementById('welcome-code-input');
         const welcomeStartBtn = document.getElementById('welcome-start-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const logoutContainer = document.getElementById('logout-container');
 
 
         const modeSelectionDiv = document.getElementById('mode-selection');
@@ -522,7 +546,7 @@
             const code = welcomeCodeInput.value.trim().toUpperCase();
             if (!code) {
                 alert('Please enter a classroom code to begin!');
-                return; // Stop the function if the code is empty
+                return; 
             }
 
             currentClassCode = code;
@@ -534,16 +558,33 @@
             // Hide the welcome screen and show the main app
             welcomeContainer.style.display = 'none';
             appContainer.style.display = 'block';
+            logoutContainer.style.display = 'block'; // Show logout button
+        }
+
+        function logout() {
+            if (!confirm("Are you sure you want to log out? This will reset the application to the welcome screen.")) return;
+            
+            // Clear all local state variables
+            currentClassCode = null;
+            currentGroupId = null;
+            logoutContainer.style.display = 'none';
+            appContainer.style.display = 'none';
+            welcomeContainer.style.display = 'flex';
+            document.getElementById('classroom-header').style.display = 'none';
+            
+            // Reload window state to ensure everything is clean (easiest way)
+            window.location.reload(); 
         }
 
         // Add listeners for the new welcome screen
         welcomeStartBtn.addEventListener('click', initializeApp);
         welcomeCodeInput.addEventListener('keyup', (event) => {
-            // Allow pressing "Enter" to start
             if (event.key === 'Enter') {
                 initializeApp();
             }
         });
+        // Add listener for the new logout button
+        logoutBtn.addEventListener('click', logout);
 
 
         
