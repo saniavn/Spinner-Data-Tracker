@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spinner Data Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
       
         #logout-container {
@@ -89,9 +90,7 @@
             background-color: white;
         }
         .slice-definition input[type="text"] { width: 150px; padding: 8px; border-radius: 5px; border: 1px solid #ccc; }
-        
-        /* Removed .slice-definition input[type="color"] since we're using a fixed palette */
-
+    
 
         .tab-btn { padding: 10px 20px; border: none; background-color: transparent; font-size: 22px; font-weight: bold; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
         #button-container { opacity: 0.5; pointer-events: none; transition: opacity 0.3s ease-in-out; }
@@ -117,6 +116,27 @@
         #settings-container label { margin-bottom: 0; font-size: 0.9em; color: #555; }
         #settings-container input { padding: 8px 12px; font-size: 1em; border: 2px solid #3498db; border-radius: 8px; text-align: center; width: 120px; }
         #settings-btn { padding: 10px 20px; font-size: 1em; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; align-self: center; }
+        
+        #live-spin-target-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+        #live-spin-target-group label {
+            font-weight: normal;
+        }
+        #live-spin-target-group input {
+            width: 80px;
+            padding: 5px 8px;
+            font-size: 1em;
+            border: 2px solid #2ecc71; /* Green border for live setting */
+            border-radius: 5px;
+            text-align: center;
+        }
+
         #spin-counter { text-align: center; font-size: 1.5em; margin-bottom: 15px; }
         #button-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 100%; margin: 0 auto; }
         .color-control { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -395,7 +415,7 @@
                         <label for="group-id-input">Group Name:</label>
                         <input type="text" id="group-id-input" placeholder="e.g., Team Alpha" autocomplete="off">
                     </div>
-                    <div class="setting-group">
+                    <div class="setting-group" id="initial-max-spins-group">
                         <label for="max-spins-input">Total Spins to Collect:</label>
                         <input type="number" id="max-spins-input" value="20" min="1">
                     </div>
@@ -403,6 +423,10 @@
                 <div id="experiment-content" style="display: none;">
                     <div id="left-panel">
                         <h2>Record Your Spins</h2>
+                        <div id="live-spin-target-group">
+                            <label for="live-max-spins-input">Target Spins:</label>
+                            <input type="number" id="live-max-spins-input" value="20" min="1" onchange="updateTally()">
+                        </div>
                         <h3 id="spin-counter">Total Spins: 0 / 20</h3>
                         <div id="button-container"></div>
                         <div id="tally-chart-container"></div>
@@ -522,7 +546,11 @@
         const settingsContainer = document.getElementById('settings-container');
         const settingsHeader = document.getElementById('settings-header');
         const groupIdInput = document.getElementById('group-id-input');
-        const maxSpinsInput = document.getElementById('max-spins-input');
+        // REMOVE maxSpinsInput from global constants as we now have two inputs
+        const initialMaxSpinsGroup = document.getElementById('initial-max-spins-group');
+        const maxSpinsInput = document.getElementById('max-spins-input'); // Initial setting
+        const liveMaxSpinsInput = document.getElementById('live-max-spins-input'); // Live setting
+        
         const settingsBtn = document.getElementById('settings-btn');
         const resetBtn = document.getElementById('reset-btn');
         const experimentContent = document.getElementById('experiment-content');
@@ -541,6 +569,7 @@
         const deleteSelectedBtn = document.getElementById('delete-selected-btn'); 
         const downloadAllBtn = document.getElementById('download-all-btn'); 
         
+        let myChart;
         //Initial Setup & Event Listeners
         function initializeApp() {
             const code = welcomeCodeInput.value.trim().toUpperCase();
@@ -585,8 +614,6 @@
         });
         // Add listener for the new logout button
         logoutBtn.addEventListener('click', logout);
-
-
         
         fixedModeBtn.addEventListener('click', () => setupMode('fixed'));
         customModeBtn.addEventListener('click', () => setupMode('custom'));
@@ -654,11 +681,15 @@
         function startExperiment() {
             const inputId = groupIdInput.value.trim();
             const inputMaxSpins = maxSpinsInput.value.trim();
+            
             if (!inputId || !inputMaxSpins || isNaN(parseInt(inputMaxSpins)) || parseInt(inputMaxSpins) <= 0) {
                 alert("Please enter a valid Group Name and a Total Spins count."); return;
             }
+            
             currentGroupId = inputId; 
-            maxSpins = parseInt(inputMaxSpins);
+            
+            // Set the value of the live input to the initial setting
+            liveMaxSpinsInput.value = parseInt(inputMaxSpins);
 
             let experimentReady = false;
             if (currentMode === 'custom') { 
@@ -674,11 +705,23 @@
                 experimentContent.style.display = 'flex'; 
                 resetBtn.style.display = 'inline-block';
                 buttonContainer.classList.add('active'); 
+                
+                // Disable Group ID input once started
+                groupIdInput.disabled = true;
+                
+                const initialCounts = {};
+                for (const colorKey in counts) {
+                    initialCounts[colorKey] = 0;
+                }
+                allResultsData[currentGroupId] = initialCounts;
+    
+                
                 updateTally();
                 generateManualEntryFields(chartColors);
+                
+                showRealTimeResults(); 
             }
         }
-
         function buildFixedSpinner() {
             clearSpinnerUI();
             // Use the standard fixed colors, mapping to the new palette for consistency
@@ -689,63 +732,102 @@
         }
 
         async function fetchAllResults() {
-            if (!currentClassCode) return;
-            const currentSignature = getCurrentSignature();
-            if (!currentSignature) {
-                const tableBody = document.querySelector("#results-table tbody");
-                tableBody.innerHTML = '<tr><td colspan="3">Start your own experiment to see results from other groups.</td></tr>';
-                return;
+    if (!currentClassCode) return;
+
+    //Get the local spinner configuration (colors, keys, and display names)
+    const localColorKeys = Object.keys(chartColors);
+    const currentSignature = localColorKeys.sort().join(',');
+
+    if (!currentSignature) {
+        const tableBody = document.querySelector("#results-table tbody");
+        tableBody.innerHTML = '<tr><td colspan="100%">Please define and start your experiment in the "My Experiment" tab first to load compatible group results.</td></tr>';
+        // Clear manual entry fields as spinner is not defined
+        document.getElementById('dynamic-manual-inputs').innerHTML = '';
+        document.getElementById('add-group-btn').disabled = true;
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/results?classroom_code=${currentClassCode}`);
+        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+        const data = await response.json();
+
+        const relevantExperiment = data.experiments.find(exp => exp.signature === currentSignature);
+
+        let resultsToDisplay = {...allResultsData};
+        
+        // Ensure the current active group's live counts (if active) are included and up-to-date
+        if (currentGroupId) {
+            resultsToDisplay[currentGroupId] = counts; // Use the live 'counts' object for the current group
+        }
+
+
+        // 2. Merge remote data with local data
+        if (relevantExperiment) {
+            // Merge remote groups into resultsToDisplay
+            Object.assign(resultsToDisplay, relevantExperiment.results);
+            
+            // Re-apply the live local count, overwriting any stale remote data for the current group ID
+            if (currentGroupId) {
+                resultsToDisplay[currentGroupId] = counts;
             }
 
-            try {
-                const response = await fetch(`/api/results?classroom_code=${currentClassCode}`);
-                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-                const data = await response.json();
-                
-                const relevantExperiment = data.experiments.find(exp => exp.signature === currentSignature);
-
-                if (!relevantExperiment || Object.keys(relevantExperiment.results).length === 0) {
-                    document.querySelector("#results-table tbody").innerHTML = `<tr><td colspan="100%">No groups have recorded results for this spinner configuration yet.</td></tr>`;
-                    updateResultsTableHeader([]);
-                    allResultsData = {};
-                    return;
-                }
-                
-                allResultsData = relevantExperiment.results;
-                const colors = relevantExperiment.colors;
-                
-                updateResultsTableHeader(colors);
-
-                const tableBody = document.querySelector("#results-table tbody");
-                tableBody.innerHTML = '';
-                
-                let ownGroupFound = false;
-
-                for (const groupId in allResultsData) {
-                    appendRowToTable(groupId, allResultsData[groupId], colors);
-                    // Check if this is the current user's group
-                    if (currentGroupId && groupId === currentGroupId) {
-                        ownGroupFound = true;
+            // Ensure all groups have a count of 0 for missing colors
+            localColorKeys.forEach(colorKey => {
+                for (const groupId in resultsToDisplay) {
+                    if (resultsToDisplay[groupId][colorKey] === undefined) {
+                        resultsToDisplay[groupId][colorKey] = 0;
                     }
                 }
-                
-                // Auto-select own group and update chart
-                if (ownGroupFound) {
-                    const ownGroupCheckbox = document.querySelector(`.group-checkbox[data-group-id="${currentGroupId}"]`);
-                    if (ownGroupCheckbox) {
-                        ownGroupCheckbox.checked = true;
-                        combineSelectedResults(); // Display the combined result immediately
-                    }
-                } else if (Object.keys(allResultsData).length > 0) {
-                     combineSelectedResults();
-                }
-
-            } catch (error) {
-                console.error("Failed to fetch all results:", error);
-                 document.querySelector("#results-table tbody").innerHTML = `<tr><td colspan="100%">Error loading results.</td></tr>`;
-            }
+            });
         }
         
+        // If there are no results (local or remote), show placeholder message.
+        if (Object.keys(resultsToDisplay).length === 0) {
+             document.querySelector("#results-table tbody").innerHTML = `<tr><td colspan="100%">No groups have recorded results for this spinner configuration yet.</td></tr>`;
+             updateResultsTableHeader([]);
+             allResultsData = {};
+             // Update manual entry fields, but keep them enabled
+             generateManualEntryFields(chartColors);
+             return;
+        }
+
+        // Update allResultsData and UI based on the local spinner definition (localColorKeys)
+        allResultsData = resultsToDisplay;
+        generateManualEntryFields(chartColors);
+        updateResultsTableHeader(localColorKeys);
+
+        const tableBody = document.querySelector("#results-table tbody");
+        tableBody.innerHTML = '';
+
+        let ownGroupFound = false;
+        
+        // Populate the table rows using the local color order (localColorKeys)
+        for (const groupId in allResultsData) {
+            appendRowToTable(groupId, allResultsData[groupId], localColorKeys);
+            // Flag the local group found
+            if (currentGroupId && groupId === currentGroupId) {
+                ownGroupFound = true;
+            }
+        }
+
+        //Auto-select own group (or the first available group) and update chart
+        if (ownGroupFound) {
+            const ownGroupCheckbox = document.querySelector(`.group-checkbox[data-group-id="${currentGroupId}"]`);
+            if (ownGroupCheckbox) {
+                ownGroupCheckbox.checked = true;
+                combineSelectedResults();
+            }
+        } else if (Object.keys(allResultsData).length > 0) {
+            // If the local group is no longer active (reset), clear the combined chart area.
+            combineSelectedResults(); 
+        }
+
+    } catch (error) {
+        console.error("Failed to fetch all results:", error);
+         document.querySelector("#results-table tbody").innerHTML = `<tr><td colspan="100%">Error loading results.</td></tr>`;
+    }
+}
 
         function updateResultsTableHeader(colors) {
             const headerRow = document.querySelector('#results-table thead tr');
@@ -951,7 +1033,6 @@
                 const currentSignature = Object.keys(allResultsData[groupId] || {}).sort().join(',');
 
                 if (referenceSignature !== currentSignature) {
-                    // Alert the user and uncheck the incompatible box
                     alert("Incompatible groups selected. You can only combine groups that have the exact same set of colors. Unchecking the last selected group.");
                     checkbox.checked = false;
                     incompatibleFound = true;
@@ -970,8 +1051,6 @@
                 }
             });
             
-            // If the last selected group was incompatible, need to stop and re-run this function
-            // to ensure the chart reflects the *remaining* valid selections
             if (incompatibleFound) {
                  // Ensures the chart only shows the valid selection
                  return combineSelectedResults(); 
@@ -987,7 +1066,7 @@
 
             const totalCombinedSpins = Object.values(combinedCounts).reduce((a, b) => a + b, 0);
             const summaryDiv = document.getElementById('combined-summary-text');
-            let summaryHTML = '<h4>Data Summary</h4>';
+            let summaryHTML = '<h4>Summery</h4>';
 
             // Loop using the guaranteed colorOrder to build the summary text.
             colorOrder.forEach(color => {
@@ -1109,13 +1188,24 @@
         function resetExperimentData() { 
             if (!confirm("Are you sure? This will reset the counts and group name, allowing a new group to start.")) return;
             clearSpinsOnServer(currentGroupId);
-            totalSpins = 0; for (const key in counts) { counts[key] = 0; } currentGroupId = null;
-            groupIdInput.value = ''; groupIdInput.disabled = false; maxSpinsInput.disabled = false;
-            settingsContainer.style.display = 'flex'; experimentContent.style.display = 'none';
-            resetBtn.style.display = 'none'; resultsContent.style.display = 'none';
-            chartPlaceholder.style.display = 'flex'; if (window['myResultsChart_chart']) { window['myResultsChart_chart'].destroy(); }
+            totalSpins = 0; 
+            for (const key in counts) { counts[key] = 0; } 
+            currentGroupId = null;
+            
+            groupIdInput.value = ''; 
+            groupIdInput.disabled = false; 
+            
+            maxSpinsInput.disabled = false; // Re-enable initial input
+            
+            settingsContainer.style.display = 'flex'; 
+            experimentContent.style.display = 'none';
+            resetBtn.style.display = 'none'; 
+            resultsContent.style.display = 'none';
+            chartPlaceholder.style.display = 'flex'; 
+            if (window['myResultsChart_chart']) { window['myResultsChart_chart'].destroy(); }
             updateTally();
         }
+        
         async function clearSpinsOnServer(groupIdToClear) {
             if (!groupIdToClear || !currentClassCode) return;
             try {
@@ -1131,52 +1221,138 @@
                 console.error(`Failed to clear spins on server for group ${groupIdToClear}:`, error);
             }
         }
+        
         function handleSpinAction(event) { 
-            const target = event.target; if (target.matches('.op-btn')) { const color = target.dataset.color; updateCount(color, target.classList.contains('plus-btn')); }
+            const target = event.target; 
+            if (target.matches('.op-btn')) { 
+                const color = target.dataset.color; 
+                updateCount(color, target.classList.contains('plus-btn')); 
+            }
         }
+        
         function updateCount(color, isPlus) { 
             if (!currentGroupId) return;
-            if (isPlus) { if (totalSpins >= maxSpins) { alert(`You have already reached the target of ${maxSpins} spins.`); return; }
-                totalSpins++; counts[color]++; sendSpinUpdate(currentGroupId, color, 'add');
-            } else { if (counts[color] > 0) { totalSpins--; counts[color]--; sendSpinUpdate(currentGroupId, color, 'remove'); } }
-            updateTally(); if (totalSpins >= maxSpins) { showFinalResults(); }
+            
+            // Get the current target number of spins from the live input field
+            const currentMaxSpins = parseInt(liveMaxSpinsInput.value) || 0;
+            
+            if (isPlus) { 
+                if (currentMaxSpins > 0 && totalSpins >= currentMaxSpins) { // Check against the live value
+                    alert(`You have already reached the target of ${currentMaxSpins} spins.`); 
+                    return; 
+                }
+                totalSpins++; 
+                counts[color]++; 
+                sendSpinUpdate(currentGroupId, color, 'add');
+            } else { 
+                if (counts[color] > 0) { 
+                    totalSpins--; 
+                    counts[color]--; 
+                    sendSpinUpdate(currentGroupId, color, 'remove'); 
+                } 
+            }
+            
+            updateTally(); 
+            
+            // Call showRealTimeResults to update chart on every change of tally ***
+            showRealTimeResults(); 
+            
+            // Check for completion after the count update
+            if (currentMaxSpins > 0 && totalSpins >= currentMaxSpins) { 
+            } 
         }
+        
         function updateTally() { 
-            spinCounter.textContent = `Total Spins: ${totalSpins} / ${maxSpins}`; updateTallyChart();
+            // Read the live max spins value every time the tally updates
+            const currentMaxSpins = parseInt(liveMaxSpinsInput.value) || 0;
+            
+            if (currentMaxSpins > 0) {
+                 spinCounter.textContent = `Total Spins: ${totalSpins} / ${currentMaxSpins}`; 
+            } else {
+                 spinCounter.textContent = `Total Spins: ${totalSpins}`; 
+            }
+
+            updateTallyChart();
         }
+        
         function updateTallyChart() { 
-            const firstColumn = tallyChartContainer.querySelector('.tally-column'); if (!firstColumn) return;
-            const containerHeight = firstColumn.clientHeight; const maxIconSize = 30; const minIconSize = 4; const margin = 2;
+            const firstColumn = tallyChartContainer.querySelector('.tally-column'); 
+            if (!firstColumn) return;
+            
+            const containerHeight = firstColumn.clientHeight; 
+            const maxIconSize = 30; 
+            const minIconSize = 4; 
+            const margin = 2;
+            
             Object.keys(counts).forEach(color => {
-                const safeId = color.replace(/\s/g, '-'); const column = document.getElementById(`${safeId}-tally-column`);
-                if (!column) return; const count = counts[color]; column.innerHTML = ''; if (count === 0) return;
-                let idealSize = (containerHeight / count) - margin; const finalSize = Math.max(minIconSize, Math.min(maxIconSize, idealSize));
+                const safeId = color.replace(/\s/g, '-'); 
+                const column = document.getElementById(`${safeId}-tally-column`);
+                if (!column) return; 
+                
+                const count = counts[color]; 
+                column.innerHTML = ''; 
+                if (count === 0) return;
+                
+                let idealSize = (containerHeight / count) - margin; 
+                const finalSize = Math.max(minIconSize, Math.min(maxIconSize, idealSize));
+                
                 for (let i = 0; i < count; i++) {
                     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                    svg.setAttribute("viewBox", "0 0 50 50"); svg.style.width = `${finalSize}px`; svg.style.height = `${finalSize}px`;
-                    svg.style.marginBottom = `${margin}px`; svg.style.flexShrink = '0';
+                    svg.setAttribute("viewBox", "0 0 50 50"); 
+                    svg.style.width = `${finalSize}px`; 
+                    svg.style.height = `${finalSize}px`;
+                    svg.style.marginBottom = `${margin}px`; 
+                    svg.style.flexShrink = '0';
+                    
                     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    path.setAttribute("d", "M10 10 L40 40 M40 10 L10 40"); path.setAttribute("stroke", chartColors[color] || '#000000');
-                    path.setAttribute("stroke-width", "12"); path.setAttribute("stroke-linecap", "round"); path.setAttribute("fill", "none");
-                    svg.appendChild(path); column.appendChild(svg);
+                    path.setAttribute("d", "M10 10 L40 40 M40 10 L10 40"); 
+                    path.setAttribute("stroke", chartColors[color] || '#000000');
+                    path.setAttribute("stroke-width", "12"); 
+                    path.setAttribute("stroke-linecap", "round"); 
+                    path.setAttribute("fill", "none");
+                    svg.appendChild(path); 
+                    column.appendChild(svg);
                 }
             });
         }
-        function showFinalResults() { 
-            chartPlaceholder.style.display = 'none'; resultsContent.style.display = 'flex';
-            document.getElementById('final-results-summary').textContent = `Here is the distribution of your ${maxSpins} spins:`;
+        
+        //Handles the real-time update of the chart and summary
+        function showRealTimeResults() { 
+            // Only show the results container if there is data
+            if (totalSpins === 0) {
+                chartPlaceholder.style.display = 'flex'; 
+                resultsContent.style.display = 'none';
+                return;
+            }
+
+            chartPlaceholder.style.display = 'none'; 
+            resultsContent.style.display = 'flex';
+            
+            const currentMaxSpins = parseInt(liveMaxSpinsInput.value) || 0;
+            
+            // Update the Summary Text
+            document.getElementById('final-results-summary').textContent = `Distribution based on ${totalSpins} spins collected so far:`;
+            
             let resultsHTML = '';
             for (const colorKey in counts) {
                 const percentage = (totalSpins > 0) ? (counts[colorKey] / totalSpins) * 100 : 0;
                 resultsHTML += `<b>${getOriginalDisplayName(colorKey)}:</b> ${counts[colorKey]} spins (${percentage.toFixed(1)}%)<br>`;
             }
             document.getElementById('my-results-text').innerHTML = resultsHTML;
+
+            // Update the Pie Chart
             createPieChart('myResultsChart', Object.keys(counts), Object.values(counts));
         }
+
+        // Renamed and streamlined from showFinalResults to keep the old function name for target-hit clarity.
+        function showFinalResults() {
+             showRealTimeResults(); 
+        }
+        
         async function sendSpinUpdate(groupId, color, action) {
             if (!currentClassCode) return;
             try {
-                // Note: The Flask endpoint uses 'color' for the key, which is the lowercase name.
+                //Flask endpoint uses 'color' for the key, which is the lowercase name.
                 await fetch('/update_spin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1191,12 +1367,75 @@
                 console.error(`Failed to send spin update:`, error);
             }
         }
+        
         function createPieChart(canvasId, labels, data) { 
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            if (window[canvasId+'_chart']) { window[canvasId+'_chart'].destroy(); }
-            const formattedLabels = labels.map(labelKey => getOriginalDisplayName(labelKey));
-            window[canvasId+'_chart'] = new Chart(ctx, { type: 'pie', data: { labels: formattedLabels, datasets: [{ label: 'Spin Results', data: data, backgroundColor: labels.map(l => chartColors[l]), borderColor: '#fff', borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } } });
-        }
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    
+    // Check if a chart instance already exists and destroy it
+    if (window[canvasId+'_chart']) { 
+        window[canvasId+'_chart'].destroy(); 
+    }
+    
+    const formattedLabels = labels.map(labelKey => getOriginalDisplayName(labelKey));
+    
+    // Check if there's any data before creating the chart
+    const hasData = data.some(value => value > 0);
+    if (!hasData) {
+        return; 
+    }
+ 
+
+    window[canvasId+'_chart'] = new Chart(ctx, { 
+        type: 'pie', 
+        data: { 
+            labels: formattedLabels, 
+            datasets: [{ 
+                label: 'Spin Results', 
+                data: data, 
+                backgroundColor: labels.map(l => chartColors[l]), 
+                borderColor: 'black', 
+                borderWidth: 2 
+            }] 
+        }, 
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            devicePixelRatio: 3, // High-res for print
+            plugins: { 
+                legend: { 
+                    position: 'top' 
+                },
+                datalabels: {
+                    anchor: 'end',// Move the label anchor to the end (outer edge)
+                    align: 'start', //  Align the label outside the slice
+                    offset: 10, 
+                    
+                    color: '#000', // Black text for better contrast outside the slice
+                    formatter: (value, context) => {
+                        const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                        // Display the full label name + percentage
+                        const labelName = context.chart.data.labels[context.dataIndex];
+                        const percentage = total > 0 ? (value / total * 100).toFixed(1) : '0';
+                        return `${labelName}: ${percentage}%`;
+                    },
+                    font: {
+                        weight: 'bold',
+                        size: 14 
+                    },
+                    display: (context) => {
+                        // Keep the small slice logic to prevent overlap on very small slices
+                        const dataset = context.chart.data.datasets[context.datasetIndex];
+                        const totalValue = dataset.data.reduce((acc, val) => acc + val, 0);
+                        const currentValue = dataset.data[context.dataIndex];
+                        const slicePercentage = (currentValue / totalValue) * 100;
+                        return slicePercentage > 2; // Show labels for slices larger than 2%
+                    }
+                }
+            } 
+        },
+        plugins: [ChartDataLabels]
+    });
+}
     </script>
 </body>
-</html>
+</html>   
