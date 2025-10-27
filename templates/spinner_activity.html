@@ -1368,7 +1368,9 @@
             }
         }
         
-        function createPieChart(canvasId, labels, data) { 
+
+
+function createPieChart(canvasId, labels, data) { 
     const ctx = document.getElementById(canvasId).getContext('2d');
     
     // Check if a chart instance already exists and destroy it
@@ -1376,6 +1378,9 @@
         window[canvasId+'_chart'].destroy(); 
     }
     
+    // Helper function for proper rounding (round up or down)
+    const customRound = (num) => Math.round(num);
+
     const formattedLabels = labels.map(labelKey => getOriginalDisplayName(labelKey));
     
     // Check if there's any data before creating the chart
@@ -1400,35 +1405,37 @@
         options: { 
             responsive: true, 
             maintainAspectRatio: false, 
-            devicePixelRatio: 3, // High-res for print
+            // High-res rendering for print
+            devicePixelRatio: 4, 
             plugins: { 
+                // Legend is disabled
                 legend: { 
-                    position: 'top' 
+                    display: false 
                 },
                 datalabels: {
-                    anchor: 'end',// Move the label anchor to the end (outer edge)
-                    align: 'start', //  Align the label outside the slice
+                    // OUTSIDE LABELS:
+                    anchor: 'end',
+                    align: 'start', 
                     offset: 10, 
                     
-                    color: '#000', // Black text for better contrast outside the slice
+                    color: '#000', 
+                    // Displythe rounded slice count
                     formatter: (value, context) => {
-                        const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                        // Display the full label name + percentage
-                        const labelName = context.chart.data.labels[context.dataIndex];
-                        const percentage = total > 0 ? (value / total * 100).toFixed(1) : '0';
-                        return `${labelName}: ${percentage}%`;
+                        // Rounding logic to the data count
+                        const roundedValue = customRound(value); 
+                        // Show the rounded value (count) as the label
+                        return roundedValue; 
                     },
                     font: {
                         weight: 'bold',
                         size: 14 
                     },
                     display: (context) => {
-                        // Keep the small slice logic to prevent overlap on very small slices
                         const dataset = context.chart.data.datasets[context.datasetIndex];
                         const totalValue = dataset.data.reduce((acc, val) => acc + val, 0);
                         const currentValue = dataset.data[context.dataIndex];
                         const slicePercentage = (currentValue / totalValue) * 100;
-                        return slicePercentage > 2; // Show labels for slices larger than 2%
+                        return slicePercentage > 2; 
                     }
                 }
             } 
