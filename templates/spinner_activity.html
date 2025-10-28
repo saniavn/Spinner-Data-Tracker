@@ -347,6 +347,34 @@
     max-width: 300px;
     height: 300px;
 }
+
+
+#download-chart-btn {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: white;
+    background-color: #27ae60; /* A strong green color (Emerald) */
+    border: 2px solid #1e8449; /* Darker green border for depth */
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    /* Spacing */
+    margin: 15px auto 10px auto; 
+    display: block;
+    width: fit-content;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#download-chart-btn:hover {
+    background-color: #1e8449; /* Darken on hover */
+    transform: translateY(-1px); /* Slight lift effect */
+}
+
+#download-chart-btn:active {
+    background-color: #1b6a37; /* Darker on click */
+    transform: translateY(1px);
+}
 </style>
 </head>
 <body>
@@ -485,7 +513,7 @@
                     <div id="all-results-right" class="all-results-right">
                         <div id="combined-results-view">
                             <h3>Combined Results</h3>
-                            <div id="combined-placeholder">
+                            <div id="combined-placeholder"><button id="download-chart-btn" onclick="downloadChart('myResultsChart')">Download Print Template</button>
                                 <p>Select group(s) from the table to see a dynamic aggregated chart here.</p>
                             </div>
                             <div id="combined-content" style="display:none;">
@@ -494,6 +522,8 @@
                                     <div id="combined-summary-text"></div>
                                     <div class="chart-container"> <canvas id="combinedChart"></canvas> </div>
                                 </div>
+                             <button id="download-chart-btn" onclick="downloadChart('myResultsChart')">Download Print Template</button>
+
                             </div>
                         </div>
                     </div>
@@ -734,65 +764,53 @@
         async function fetchAllResults() {
     if (!currentClassCode) return;
 
-    //Get the local spinner configuration (colors, keys, and display names)
+    //Determine the spinner configuration (signature) for filtering results
     const localColorKeys = Object.keys(chartColors);
     const currentSignature = localColorKeys.sort().join(',');
 
     if (!currentSignature) {
         const tableBody = document.querySelector("#results-table tbody");
         tableBody.innerHTML = '<tr><td colspan="100%">Please define and start your experiment in the "My Experiment" tab first to load compatible group results.</td></tr>';
-        // Clear manual entry fields as spinner is not defined
         document.getElementById('dynamic-manual-inputs').innerHTML = '';
         document.getElementById('add-group-btn').disabled = true;
         return;
     }
 
     try {
+        //Fetch all results from the server
         const response = await fetch(`/api/results?classroom_code=${currentClassCode}`);
         if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
         const data = await response.json();
 
         const relevantExperiment = data.experiments.find(exp => exp.signature === currentSignature);
 
-        let resultsToDisplay = {...allResultsData};
+        //Initialize resultsToDisplay with fetched remote data (the "history")
+        let resultsToDisplay = (relevantExperiment && relevantExperiment.results) ? {...relevantExperiment.results} : {};
         
-        // Ensure the current active group's live counts (if active) are included and up-to-date
+        //Merge in the current active group's live counts (priority given to local data)
         if (currentGroupId) {
-            resultsToDisplay[currentGroupId] = counts; // Use the live 'counts' object for the current group
+            resultsToDisplay[currentGroupId] = counts; 
         }
 
-
-        // 2. Merge remote data with local data
-        if (relevantExperiment) {
-            // Merge remote groups into resultsToDisplay
-            Object.assign(resultsToDisplay, relevantExperiment.results);
-            
-            // Re-apply the live local count, overwriting any stale remote data for the current group ID
-            if (currentGroupId) {
-                resultsToDisplay[currentGroupId] = counts;
-            }
-
-            // Ensure all groups have a count of 0 for missing colors
-            localColorKeys.forEach(colorKey => {
-                for (const groupId in resultsToDisplay) {
-                    if (resultsToDisplay[groupId][colorKey] === undefined) {
-                        resultsToDisplay[groupId][colorKey] = 0;
-                    }
+        //Ensure all groups have a count of 0 for missing colors
+        localColorKeys.forEach(colorKey => {
+            for (const groupId in resultsToDisplay) {
+                if (resultsToDisplay[groupId][colorKey] === undefined) {
+                    resultsToDisplay[groupId][colorKey] = 0;
                 }
-            });
-        }
+            }
+        });
         
-        // If there are no results (local or remote), show placeholder message.
+        // Handle case where there are no results
         if (Object.keys(resultsToDisplay).length === 0) {
              document.querySelector("#results-table tbody").innerHTML = `<tr><td colspan="100%">No groups have recorded results for this spinner configuration yet.</td></tr>`;
              updateResultsTableHeader([]);
              allResultsData = {};
-             // Update manual entry fields, but keep them enabled
              generateManualEntryFields(chartColors);
              return;
         }
 
-        // Update allResultsData and UI based on the local spinner definition (localColorKeys)
+        //Update global state and UI elements
         allResultsData = resultsToDisplay;
         generateManualEntryFields(chartColors);
         updateResultsTableHeader(localColorKeys);
@@ -802,16 +820,15 @@
 
         let ownGroupFound = false;
         
-        // Populate the table rows using the local color order (localColorKeys)
+        // Populate the results table rows
         for (const groupId in allResultsData) {
             appendRowToTable(groupId, allResultsData[groupId], localColorKeys);
-            // Flag the local group found
             if (currentGroupId && groupId === currentGroupId) {
                 ownGroupFound = true;
             }
         }
 
-        //Auto-select own group (or the first available group) and update chart
+        //Auto-select the current group and update the combined chart
         if (ownGroupFound) {
             const ownGroupCheckbox = document.querySelector(`.group-checkbox[data-group-id="${currentGroupId}"]`);
             if (ownGroupCheckbox) {
@@ -819,16 +836,15 @@
                 combineSelectedResults();
             }
         } else if (Object.keys(allResultsData).length > 0) {
-            // If the local group is no longer active (reset), clear the combined chart area.
+            // If the local group isn't active, ensure the combined view is reset or shows placeholder
             combineSelectedResults(); 
         }
 
     } catch (error) {
         console.error("Failed to fetch all results:", error);
-         document.querySelector("#results-table tbody").innerHTML = `<tr><td colspan="100%">Error loading results.</td></tr>`;
+        document.querySelector("#results-table tbody").innerHTML = `<tr><td colspan="100%">Error loading results.</td></tr>`;
     }
 }
-
         function updateResultsTableHeader(colors) {
             const headerRow = document.querySelector('#results-table thead tr');
             headerRow.innerHTML = '<th>Select</th><th>Group Name</th><th>Total Spins</th>';
@@ -938,7 +954,7 @@
         }
 
         function getOriginalDisplayName(key) {
-            // 1. Local map (for custom names), 2. Default capitalization.
+            // Local map (for custom names); Default capitalization.
             if (colorDisplayNameMap[key]) {
                 return colorDisplayNameMap[key];
             }
@@ -1016,7 +1032,6 @@
             const firstGroupId = selectedCheckboxes[0].dataset.groupId;
             const referenceSignature = Object.keys(allResultsData[firstGroupId] || {}).sort().join(',');
             
-            // Get the canonical list of colors in a fixed order.
             const colorOrder = Object.keys(chartColors);
 
             // Initialize combinedCounts with all colors set to 0, in the correct order.
@@ -1160,7 +1175,8 @@
             const nameKey = displayName.toLowerCase(); 
             counts[nameKey] = 0; 
             chartColors[nameKey] = colorValue;
-            colorDisplayNameMap[nameKey] = displayName; // Store the original display name
+            // Store the original display name
+            colorDisplayNameMap[nameKey] = displayName; 
 
             const newControl = document.createElement('div'); 
             newControl.className = 'color-control';
@@ -1194,8 +1210,8 @@
             
             groupIdInput.value = ''; 
             groupIdInput.disabled = false; 
-            
-            maxSpinsInput.disabled = false; // Re-enable initial input
+            // Re-enable initial input
+            maxSpinsInput.disabled = false; 
             
             settingsContainer.style.display = 'flex'; 
             experimentContent.style.display = 'none';
@@ -1316,7 +1332,7 @@
             });
         }
         
-        //Handles the real-time update of the chart and summary
+        //Real-time update of the chart and summary
         function showRealTimeResults() { 
             // Only show the results container if there is data
             if (totalSpins === 0) {
@@ -1369,7 +1385,6 @@
         }
         
 
-
 function createPieChart(canvasId, labels, data) { 
     const ctx = document.getElementById(canvasId).getContext('2d');
     
@@ -1419,29 +1434,86 @@ function createPieChart(canvasId, labels, data) {
                     offset: 10, 
                     
                     color: '#000', 
-                    // Displythe rounded slice count
+                    // Show the Group Name (Slice Name) AND the rounded count
                     formatter: (value, context) => {
-                        // Rounding logic to the data count
-                        const roundedValue = customRound(value); 
-                        // Show the rounded value (count) as the label
-                        return roundedValue; 
+                        const sliceName = context.chart.data.labels[context.dataIndex];
+                        const roundedValue = customRound(value);
+                        
+                        // Display the Group Name (slice name) followed by the rounded count
+                        return `${sliceName}: ${roundedValue}`; 
                     },
                     font: {
                         weight: 'bold',
                         size: 14 
                     },
                     display: (context) => {
-                        const dataset = context.chart.data.datasets[context.datasetIndex];
-                        const totalValue = dataset.data.reduce((acc, val) => acc + val, 0);
-                        const currentValue = dataset.data[context.dataIndex];
-                        const slicePercentage = (currentValue / totalValue) * 100;
-                        return slicePercentage > 2; 
-                    }
+                    const dataset = context.chart.data.datasets[context.datasetIndex];
+                    const totalValue = dataset.data.reduce((acc, val) => acc + val, 0);
+                    const currentValue = dataset.data[context.dataIndex];
+                    const slicePercentage = (currentValue / totalValue) * 100;
+                    
+                    return slicePercentage > 5; // Only show labels for slices larger than 5%
+                }
                 }
             } 
         },
         plugins: [ChartDataLabels]
     });
+}
+// function downloadChart(canvasId) {
+//     const canvas = document.getElementById(canvasId);
+//     // This ensures the chart is captured at the high resolution set by devicePixelRatio: 4
+//     const image = canvas.toDataURL('image/png', 1.0); 
+//     const link = document.createElement('a');
+//     link.download = 'spinner_template.png';
+//     link.href = image;
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+// }
+
+function downloadChart(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error("Canvas element not found:", canvasId);
+        return;
+    }
+
+    // Determine the group name to use in the filename
+    let groupName = "Unknown_Group"; // Default name
+    if (canvasId === 'myResultsChart' && currentGroupId) {
+        groupName = currentGroupId;
+    } else if (canvasId === 'combinedChart') {
+        // For combined chart, get selected group names
+        const selectedCheckboxes = document.querySelectorAll('#results-table .group-checkbox:checked');
+        if (selectedCheckboxes.length > 0) {
+            const selectedGroupIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.groupId);
+            groupName = `Combined_${selectedGroupIds.join('_')}`; // Join names with underscore
+            if (groupName.length > 50) { // Limit filename length
+                groupName = `Combined_${selectedCheckboxes.length}_Groups`;
+            }
+        } else {
+            groupName = "Combined_Results_No_Selection";
+        }
+    }
+    // Replace invalid chars with underscore
+    const sanitizedGroupName = groupName.replace(/[\\/:*?"<>|]/g, '_'); 
+
+    // Construct the filename
+    const filename = `${sanitizedGroupName}_spinner_results.png`;
+
+    try {
+        const image = canvas.toDataURL('image/png', 1.0); 
+        const link = document.createElement('a');
+        link.download = filename; // Use the dynamic filename
+        link.href = image;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error("Error downloading chart:", error);
+        alert("Could not download the chart image.");
+    }
 }
     </script>
 </body>
