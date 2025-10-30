@@ -13,6 +13,22 @@
             top: 20px;
             right: 20px;
             z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+        #back-to-mode-btn {
+            padding: 10px 15px;
+            font-size: 1em;
+            background-color: #3498db; /* Blue color */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: bold;
+        }
+        #back-to-mode-btn:hover {
+            background-color: #2980b9;
         }
         #logout-btn {
             padding: 10px 15px;
@@ -379,6 +395,7 @@
 </head>
 <body>
 <div id="logout-container" style="display: none;">
+    <button id="back-to-mode-btn">Back to Mode Selection</button>
     <button id="logout-btn">Log Out</button>
 </div>
 <div id="welcome-container">
@@ -563,7 +580,7 @@
         const welcomeStartBtn = document.getElementById('welcome-start-btn');
         const logoutBtn = document.getElementById('logout-btn');
         const logoutContainer = document.getElementById('logout-container');
-
+        const backToModeBtn = document.getElementById('back-to-mode-btn');
 
         const modeSelectionDiv = document.getElementById('mode-selection');
         const mainContent = document.getElementById('main-content');
@@ -644,6 +661,7 @@
         });
         // Add listener for the new logout button
         logoutBtn.addEventListener('click', logout);
+        backToModeBtn.addEventListener('click', goBackToModeSelection);
         
         fixedModeBtn.addEventListener('click', () => setupMode('fixed'));
         customModeBtn.addEventListener('click', () => setupMode('custom'));
@@ -1515,6 +1533,42 @@ function downloadChart(canvasId) {
         alert("Could not download the chart image.");
     }
 }
+
+function goBackToModeSelection() {
+            if (totalSpins > 0 || groupIdInput.value.trim() !== '') { 
+                if (!confirm("Are you sure? This will abandon your current experiment progress and return to the mode selection screen.")) {
+                    return;
+                }
+            }
+
+            totalSpins = 0; 
+            currentGroupId = null;
+            allResultsData = {};
+            clearSpinnerUI(); 
+            if (window['myResultsChart_chart']) { window['myResultsChart_chart'].destroy(); }
+            if (window['combinedChart_chart']) { window['combinedChart_chart'].destroy(); }
+
+            mainContent.style.display = 'none';
+            experimentContent.style.display = 'none';
+            resultsContent.style.display = 'none';
+            chartPlaceholder.style.display = 'flex'; 
+            settingsContainer.style.display = 'flex';
+            resetBtn.style.display = 'none'; 
+            
+            groupIdInput.value = ''; 
+            groupIdInput.disabled = false; 
+            maxSpinsInput.value = '20';
+            liveMaxSpinsInput.value = '20';
+         
+            sliceDefinitionsContainer.innerHTML = '';
+            numSlicesInput.value = '2';
+            customSpinnerSetupDiv.style.display = 'none';
+            
+            switchTab('my-experiment');
+     
+            modeSelectionDiv.style.display = 'block';
+        }
+        welcomeStartBtn.addEventListener('click', initializeApp);
     </script>
 </body>
 </html>   
