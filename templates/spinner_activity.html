@@ -1458,7 +1458,7 @@ function createPieChart(canvasId, labels, data) {
                         const roundedValue = customRound(value);
                         
                         // Display the Group Name (slice name) followed by the rounded count
-                        return `${sliceName}: ${roundedValue}`; 
+                        return [sliceName, roundedValue];
                     },
                     font: {
                         weight: 'bold',
