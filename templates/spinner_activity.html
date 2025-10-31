@@ -391,6 +391,14 @@
     background-color: #1b6a37; /* Darker on click */
     transform: translateY(1px);
 }
+
+#final-results-title {
+    margin-bottom: 5px; 
+}
+
+#final-results-summary {
+    margin-top: 0;     
+}
 </style>
 </head>
 <body>
@@ -485,9 +493,10 @@
                             <h2 id="final-results-title">Final Results!</h2>
                             <p id="final-results-summary"></p>
                             <div class="final-results-layout">
-                                <div id="my-results-text" style="text-align: left; margin-bottom: 15px;"></div>
+                                <div id="my-results-text" style="text-align: left; margin-bottom: 10px;"></div>
                                 <div class="chart-container"> <canvas id="myResultsChart"></canvas> </div>
                             </div>
+
                             </div>
                     </div>
                 </div>
@@ -1401,9 +1410,9 @@
                 console.error(`Failed to send spin update:`, error);
             }
         }
-        
 
-function createPieChart(canvasId, labels, data) { 
+
+ function createPieChart(canvasId, labels, data) { 
     const ctx = document.getElementById(canvasId).getContext('2d');
     
     // Check if a chart instance already exists and destroy it
@@ -1411,7 +1420,7 @@ function createPieChart(canvasId, labels, data) {
         window[canvasId+'_chart'].destroy(); 
     }
     
-    // Helper function for proper rounding (round up or down)
+    // Proper rounding (round up or down)
     const customRound = (num) => Math.round(num);
 
     const formattedLabels = labels.map(labelKey => getOriginalDisplayName(labelKey));
@@ -1422,7 +1431,6 @@ function createPieChart(canvasId, labels, data) {
         return; 
     }
  
-
     window[canvasId+'_chart'] = new Chart(ctx, { 
         type: 'pie', 
         data: { 
@@ -1460,80 +1468,274 @@ function createPieChart(canvasId, labels, data) {
                         // Display the Group Name (slice name) followed by the rounded count
                         return [sliceName, roundedValue];
                     },
-                    font: {
-                        weight: 'bold',
-                        size: 14 
+                    //THIS IS THE MODIFIED FONT FUNCTION
+                    font: function(context) {
+                        const dataset = context.chart.data.datasets[context.datasetIndex];
+                        const totalValue = dataset.data.reduce((acc, val) => acc + val, 0);
+                        const currentValue = dataset.data[context.dataIndex];
+                        const slicePercentage = (currentValue / totalValue) * 100;
+                        
+                        // Use a smaller font size for slices under 15%
+                        const size = slicePercentage < 15 ? 11 : 14; 
+                        
+                        return {
+                            weight: 'bold',
+                            size: size
+                        };
                     },
                     display: (context) => {
-                    const dataset = context.chart.data.datasets[context.datasetIndex];
-                    const totalValue = dataset.data.reduce((acc, val) => acc + val, 0);
-                    const currentValue = dataset.data[context.dataIndex];
-                    const slicePercentage = (currentValue / totalValue) * 100;
-                    
-                    return slicePercentage > 5; // Only show labels for slices larger than 5%
-                }
+                        const dataset = context.chart.data.datasets[context.datasetIndex];
+                        const totalValue = dataset.data.reduce((acc, val) => acc + val, 0);
+                        const currentValue = dataset.data[context.dataIndex];
+                        const slicePercentage = (currentValue / totalValue) * 100;
+                        
+                        return slicePercentage > 5; // Only show labels for slices larger than 5%
+                    }
                 }
             } 
         },
         plugins: [ChartDataLabels]
     });
-}
+}       
+
 // function downloadChart(canvasId) {
 //     const canvas = document.getElementById(canvasId);
-//     // This ensures the chart is captured at the high resolution set by devicePixelRatio: 4
-//     const image = canvas.toDataURL('image/png', 1.0); 
-//     const link = document.createElement('a');
-//     link.download = 'spinner_template.png';
-//     link.href = image;
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
-// }
+//     if (!canvas) {
+//         console.error("Canvas element not found:", canvasId);
+//         return;
+//     }
 
+//     // Determine the group name to use in the filename AND title
+//     let groupName = "Unknown_Group"; // Default name
+//     if (canvasId === 'myResultsChart' && currentGroupId) {
+//         groupName = currentGroupId;
+//     } else if (canvasId === 'combinedChart') {
+//         const selectedCheckboxes = document.querySelectorAll('#results-table .group-checkbox:checked');
+//         if (selectedCheckboxes.length > 0) {
+//             const selectedGroupIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.groupId);
+//             groupName = `Combined: ${selectedGroupIds.join(', ')}`; // Create a readable title
+            
+//             if (groupName.length > 50) { // Limit title length
+//                 groupName = `Combined: ${selectedCheckboxes.length} Groups`;
+//             }
+//         } else {
+//             groupName = "Combined Results (No Selection)";
+//         }
+//     }
+
+//     // Create a filename-safe version
+//     const sanitizedGroupName = groupName.replace(/[\\/:*?"<>|]/g, '_').replace(/, /g, '_'); 
+//     const filename = `${sanitizedGroupName}_spinner_results.png`;
+    
+//     //Create a new in-memory canvas
+//     const printCanvas = document.createElement('canvas');
+//     const ctx = printCanvas.getContext('2d');
+    
+//     const titleHeight = 50; // Space for the title
+//     const padding = 20;     // Padding around the canvas
+
+//     // Set new canvas dimensions
+//     printCanvas.width = canvas.width + (padding * 2);
+//     printCanvas.height = canvas.height + titleHeight + (padding * 2);
+
+//     // Draw white background
+//     ctx.fillStyle = 'white';
+//     ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+
+//     //Draw the title text (using the readable 'groupName')
+//     ctx.fillStyle = '#333'; // Dark text color
+//     ctx.font = 'bold 24px Arial';
+//     ctx.textAlign = 'center';
+//     ctx.textBaseline = 'top';
+//     ctx.fillText(groupName, printCanvas.width / 2, padding);
+
+//     ctx.drawImage(canvas, padding, titleHeight + padding, canvas.width, canvas.height);
+
+    
+//     try {
+//         const image = printCanvas.toDataURL('image/png', 1.0); // Get image from the new canvas
+//         const link = document.createElement('a');
+//         link.download = filename; // Use the dynamic filename
+//         link.href = image;
+//         document.body.appendChild(link);
+//         link.click();
+//         document.body.removeChild(link);
+//     } catch (error) {
+//         console.error("Error downloading chart:", error);
+//         alert("Could not download the chart image.");
+//     }
+// }
 function downloadChart(canvasId) {
     const canvas = document.getElementById(canvasId);
-    if (!canvas) {
-        console.error("Canvas element not found:", canvasId);
+    const chart = window[canvasId + '_chart']; // Get the chart instance
+
+    if (!canvas || !chart) {
+        console.error("Canvas or Chart instance not found:", canvasId);
         return;
     }
 
-    // Determine the group name to use in the filename
-    let groupName = "Unknown_Group"; // Default name
-    if (canvasId === 'myResultsChart' && currentGroupId) {
+    // Get the data directly from the chart object
+    const labels = chart.data.labels || [];
+    const data = chart.data.datasets[0].data || [];
+    const colors = chart.data.datasets[0].backgroundColor || [];
+    const totalSpins = data.reduce((a, b) => a + b, 0);
+
+    if (totalSpins === 0) {
+        // Use a non-blocking message instead of alert
+        console.warn("There is no data to download.");
+        // You could show a custom modal/toast here
+        return;
+    }
+
+    // Determine the group name (same as before)
+    let groupName = "Unknown_Group";
+    if (canvasId === 'myResultsChart' && typeof currentGroupId !== 'undefined' && currentGroupId) {
         groupName = currentGroupId;
     } else if (canvasId === 'combinedChart') {
-        // For combined chart, get selected group names
         const selectedCheckboxes = document.querySelectorAll('#results-table .group-checkbox:checked');
         if (selectedCheckboxes.length > 0) {
             const selectedGroupIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.groupId);
-            groupName = `Combined_${selectedGroupIds.join('_')}`; // Join names with underscore
-            if (groupName.length > 50) { // Limit filename length
-                groupName = `Combined_${selectedCheckboxes.length}_Groups`;
+            groupName = `Combined: ${selectedGroupIds.join(', ')}`;
+            if (groupName.length > 50) {
+                groupName = `Combined: ${selectedCheckboxes.length} Groups`;
             }
         } else {
-            groupName = "Combined_Results_No_Selection";
+            groupName = "Combined Results (No Selection)";
         }
     }
-    // Replace invalid chars with underscore
-    const sanitizedGroupName = groupName.replace(/[\\/:*?"<>|]/g, '_'); 
-
-    // Construct the filename
+    const sanitizedGroupName = groupName.replace(/[\\/:*?"<>|]/g, '_').replace(/, /g, '_');
     const filename = `${sanitizedGroupName}_spinner_results.png`;
 
+    const padding = 20;
+    const titleHeight = 40;
+    const totalSpinsHeight = 25;
+    const legendLineHeight = 22; // This is now the height of one *row*
+    const spaceBetweenLegendAndChart = 20;
+    const itemMarginRight = 15; // Space between legend items on the same row
+    const textOffset = 25;      // Width of color box (18) + gap (7)
+    const finalCanvasWidth = canvas.width + (padding * 2);
+    const legendPaddingX = padding;
+    const legendMaxX = finalCanvasWidth - padding; 
+
+   
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCtx.font = '16px Arial';
+
+    let currentX = legendPaddingX;
+    let rowCount = 1; // Start with 1 row
+
+    if (labels.length > 0) {
+        for (let i = 0; i < labels.length; i++) {
+            const label = labels[i];
+            const count = data[i];
+            const percentage = (count / totalSpins * 100).toFixed(1);
+            const legendText = `${label}: ${count} spins (${percentage}%)`;
+            
+            // Calculate the full width of this one legend item
+            const itemWidth = textOffset + tempCtx.measureText(legendText).width + itemMarginRight;
+
+            if (currentX > legendPaddingX && currentX + itemWidth > legendMaxX) {
+                // Doesn't fit, wrap to a new line
+                rowCount++;
+                currentX = legendPaddingX;
+            }
+            // Add the item's width to the current X position
+            currentX += itemWidth;
+        }
+    } else {
+        rowCount = 0; // No labels, no legend height
+    }
+
+    const legendHeight = rowCount * legendLineHeight;
+
+
+
+    // This is the total height of all text *before* the chart
+    const legendTotalHeight = titleHeight + totalSpinsHeight + (legendHeight > 0 ? legendHeight + spaceBetweenLegendAndChart : 0);
+
+    const printCanvas = document.createElement('canvas');
+    const ctx = printCanvas.getContext('2d');
+
+    // Set new canvas dimensions
+    printCanvas.width = finalCanvasWidth;
+    printCanvas.height = canvas.height + legendTotalHeight + (padding * 2);
+
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
+    
+    ctx.fillStyle = '#333'; // Dark text color
+    ctx.textBaseline = 'top';
+
+    let currentY = padding; // Start drawing at the top padding
+
+    // Draw the title
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(groupName, printCanvas.width / 2, currentY);
+    currentY += titleHeight; // Move down
+
+    //Draw Total Spins
+    ctx.font = '18px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Total Spins: ${totalSpins}`, printCanvas.width / 2, currentY);
+    currentY += totalSpinsHeight; // Move down
+
+    if (labels.length > 0) {
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'left'; 
+        ctx.textBaseline = 'middle'; // Vertically center text
+        currentX = legendPaddingX; // Reset X for actual drawing
+
+        // Adjust Y to be in the middle of the first line height
+        currentY += legendLineHeight / 2;
+
+        for (let i = 0; i < labels.length; i++) {
+            const label = labels[i];
+            const count = data[i];
+            const color = colors[i];
+            const percentage = (count / totalSpins * 100).toFixed(1);
+            const legendText = `${label}: ${count} spins (${percentage}%)`;
+            
+            // Use the real context for measurement now
+            const itemWidth = textOffset + ctx.measureText(legendText).width + itemMarginRight;
+
+            // Pre-calculation
+            if (currentX > legendPaddingX && currentX + itemWidth > legendMaxX) {
+                currentY += legendLineHeight; // Move to the middle of the next row
+                currentX = legendPaddingX;      // Reset X
+            }
+
+
+            // Draw the small color box (vertically centered)
+            ctx.fillStyle = color;
+            ctx.fillRect(currentX, currentY - 7, 18, 14); // (14px height / 2 = 7)
+
+            // Draw the text next to the box
+            ctx.fillStyle = '#333'; // Back to black for text
+            ctx.fillText(legendText, currentX + textOffset, currentY); 
+
+            currentX += itemWidth;
+        }
+
+        currentY += (legendLineHeight / 2) + spaceBetweenLegendAndChart;
+    }
+  
+    ctx.drawImage(canvas, padding, currentY, canvas.width, canvas.height);
+    
     try {
-        const image = canvas.toDataURL('image/png', 1.0); 
+        const image = printCanvas.toDataURL('image/png', 1.0);
         const link = document.createElement('a');
-        link.download = filename; // Use the dynamic filename
+        link.download = filename;
         link.href = image;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     } catch (error) {
         console.error("Error downloading chart:", error);
-        alert("Could not download the chart image.");
+   
     }
 }
-
 function goBackToModeSelection() {
             if (totalSpins > 0 || groupIdInput.value.trim() !== '') { 
                 if (!confirm("Are you sure? This will abandon your current experiment progress and return to the mode selection screen.")) {
