@@ -127,7 +127,46 @@ def clear_spins():
     
     return jsonify({'status': 'success', 'message': f'Data for group {group_name} cleared.'})
 
+@app.route('/api/add_manual_group', methods=['POST'])
+def add_manual_group():
+    data = request.get_json()
+    classroom_code = data.get('classroom_code')
+    group_name = data.get('group_name')
+    results = data.get('results') # Expected to be a dict like {'red': 3, 'blue': 2, ...}
 
+    if not all([classroom_code, group_name, results]):
+        return jsonify({'status': 'error', 'message': 'Missing data'}), 400
+
+    conn = get_db_connection()
+    try:
+        # Server-side check to see if the name is already taken
+        existing = conn.execute(
+            'SELECT 1 FROM spins WHERE classroom_code = ? AND group_name = ? LIMIT 1',
+            (classroom_code, group_name)
+        ).fetchone()
+        
+        if existing:
+            conn.close()
+            return jsonify({'status': 'error', 'message': 'Group name already exists in the database'}), 409 
+
+        # If name is not taken, insert all the spins
+        for color, count in results.items():
+            if count > 0:
+                # We insert 'count' number of rows to simulate the spins
+                for _ in range(count):
+                    conn.execute(
+                        'INSERT INTO spins (classroom_code, group_name, color) VALUES (?, ?, ?)',
+                        (classroom_code, group_name, color)
+                    )
+        
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    finally:
+        conn.close()
+        
+    return jsonify({'status': 'success', 'message': 'Group added successfully'})
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
