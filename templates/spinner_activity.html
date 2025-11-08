@@ -721,6 +721,32 @@
       #final-results-summary {
         margin-top: 0;
       }
+
+      .download-btn {
+        padding: 12px 25px;
+        font-size: 1.1em;
+        font-weight: bold;
+        color: white;
+        background-color: #27ae60; /* A strong green color (Emerald) */
+        border: 2px solid #1e8449; /* Darker green border for depth */
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.1s;
+        margin: 15px auto 10px auto;
+        display: block;
+        width: fit-content;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .download-btn:hover {
+        background-color: #1e8449; /* Darken on hover */
+        transform: translateY(-1px);
+      }
+
+      .download-btn:active {
+        background-color: #1b6a37; /* Darker on click */
+        transform: translateY(1px);
+      }
     </style>
   </head>
   <body>
@@ -869,6 +895,12 @@
                     <canvas id="myResultsChart"></canvas>
                   </div>
                 </div>
+                <button
+                  class="download-btn"
+                  onclick="downloadChart('myResultsChart')"
+                >
+                  Download Print Template
+                </button>
               </div>
             </div>
           </div>
