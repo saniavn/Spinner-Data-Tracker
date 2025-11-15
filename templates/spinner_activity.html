@@ -819,7 +819,7 @@
             My Experiment
           </button>
           <button class="tab-btn" id="all-results-tab">
-            All Group Results
+            All Teams Results
           </button>
         </div>
 
@@ -915,7 +915,7 @@
                   <thead>
                     <tr>
                       <th>Select</th>
-                      <th>Group Name</th>
+                      <th>Team Name</th>
                       <th>Total Spins</th>
                     </tr>
                   </thead>
@@ -1822,7 +1822,7 @@
           0
         );
         const summaryDiv = document.getElementById("combined-summary-text");
-        let summaryHTML = "<h4>Summery</h4>";
+        let summaryHTML = "<h4>Summary</h4>";
 
         // Loop using the guaranteed colorOrder to build the summary text.
         colorOrder.forEach((color) => {
@@ -1873,13 +1873,12 @@
           const assignedColor = ACCESSIBLE_COLOR_PALETTE[i].hex;
           const defaultName = ACCESSIBLE_COLOR_PALETTE[i].name;
 
-          // No longer using the color input field
           sliceDiv.innerHTML = `
-                    <div style="background-color: ${assignedColor}; color: white; padding: 5px 10px; border-radius: 5px;">Color: ${defaultName}</div>
-                    <label>Slice Name:</label>
-                    <input type="text" class="slice-name-input" placeholder="e.g., ${defaultName}" value="${defaultName}">
-                    <input type="hidden" class="slice-color-value" value="${assignedColor}">
-                `;
+        <div style="background-color: ${assignedColor}; width: 40px; height: 40px; border-radius: 5px; border: 1px solid #999;" title="Color: ${defaultName}"></div>
+        <label>Slice Name:</label>
+        <input type="text" class="slice-name-input" placeholder="e.g., ${defaultName}" value="${defaultName}">
+        <input type="hidden" class="slice-color-value" value="${assignedColor}">
+    `;
           sliceDefinitionsContainer.appendChild(sliceDiv);
         }
       }
