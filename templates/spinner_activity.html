@@ -844,7 +844,7 @@
           <div id="settings-container">
             <h3 id="settings-header">Step 2: Enter Your Details</h3>
             <div class="setting-group">
-              <label for="group-id-input">Group Name:</label>
+              <label for="group-id-input">Team Name:</label>
               <input
                 type="text"
                 id="group-id-input"
@@ -909,7 +909,7 @@
         <div id="all-results-view" class="view">
           <div class="all-results-layout">
             <div class="all-results-left">
-              <h2>All Group Results</h2>
+              <h2>All Team Results</h2>
               <div class="table-container">
                 <table id="results-table">
                   <thead>
@@ -933,7 +933,7 @@
                 </p>
                 <div class="manual-entry-fields">
                   <div class="field-group">
-                    <label for="manual-group-name">Group Name</label>
+                    <label for="manual-group-name">Team Name</label>
                     <input
                       type="text"
                       id="manual-group-name"
@@ -944,7 +944,7 @@
                     id="dynamic-manual-inputs"
                     style="display: contents"
                   ></div>
-                  <button id="add-group-btn" disabled>Add Group</button>
+                  <button id="add-group-btn" disabled>Add Team</button>
                 </div>
               </div>
             </div>
@@ -959,7 +959,7 @@
                     Download Print Template
                   </button>
                   <p>
-                    Select group(s) from the table to see a dynamic aggregated
+                    Select team(s) from the table to see a dynamic aggregated
                     chart here.
                   </p>
                 </div>
@@ -1097,9 +1097,9 @@
           const newControl = document.createElement("div");
           newControl.className = "color-control";
           newControl.innerHTML = `
-                    <button class="op-btn minus-btn" data-color="${colorKey}">-</button>
-                    <div class="color-label" style="background-color: ${colorValue};"> ${displayName} </div>
-                    <button class="op-btn plus-btn" data-color="${colorKey}">+</button>`;
+                        <button class="op-btn minus-btn" data-color="${colorKey}">-</button>
+                        <div class="color-label" style="background-color: ${colorValue};"> ${displayName} </div>
+                        <button class="op-btn plus-btn" data-color="${colorKey}">+</button>`;
           buttonContainer.appendChild(newControl);
 
           const newTallyWrapper = document.createElement("div");
@@ -1128,6 +1128,9 @@
 
         //Generate manual fields for "All Results" tab
         generateManualEntryFields(chartColors);
+
+        // **Update the results table header to match**
+        updateResultsTableHeader(Object.keys(chartColors));
 
         //Update UI with loaded data
         updateTally();
@@ -1373,6 +1376,9 @@
           "Yellow",
           ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Yellow").hex
         );
+
+        // **NEW: Update the results table header to match**
+        updateResultsTableHeader(Object.keys(chartColors));
       }
       async function fetchAllResults() {
         if (!currentClassCode) return;
@@ -1402,7 +1408,14 @@
           if (!data.experiments || data.experiments.length === 0) {
             tableBody.innerHTML =
               '<tr><td colspan="100%">No groups have recorded results for this classroom yet.</td></tr>';
-            updateResultsTableHeader([]); // Clear header
+
+            // **Update: Use the local signature if it exists, otherwise clear**
+            if (currentSignature) {
+              updateResultsTableHeader(localColorKeys);
+            } else {
+              updateResultsTableHeader([]); // Clear header if no local signature
+            }
+
             allResultsData = {}; // Clear data
 
             // Keep manual entry disabled if no local spinner is defined
@@ -1460,8 +1473,16 @@
 
           // Temporarily set the global map for the header function
           const originalColorMap = colorDisplayNameMap;
-          colorDisplayNameMap = tempColorNameMap;
-          updateResultsTableHeader(colors);
+
+          // **Check: If we are showing the user's *own* experiment, use their local map**
+          if (signature === currentSignature) {
+            // Use the local map, which has the correct capitalization/names
+            updateResultsTableHeader(localColorKeys);
+          } else {
+            // We are showing a *different* experiment, use the temporary map
+            colorDisplayNameMap = tempColorNameMap;
+            updateResultsTableHeader(colors);
+          }
 
           if (!currentSignature) {
             const tempChartColors = {};
@@ -1838,7 +1859,7 @@
         summaryDiv.innerHTML = summaryHTML;
         document.getElementById(
           "combined-info"
-        ).textContent = `Combined results from Groups: ${selectedGroupIds.join(
+        ).textContent = `Combined results from Teams: ${selectedGroupIds.join(
           ", "
         )} (${totalCombinedSpins} total spins)`;
 
@@ -1878,7 +1899,7 @@
         <label>Slice Name:</label>
         <input type="text" class="slice-name-input" placeholder="e.g., ${defaultName}" value="${defaultName}">
         <input type="hidden" class="slice-color-value" value="${assignedColor}">
-    `;
+      `;
           sliceDefinitionsContainer.appendChild(sliceDiv);
         }
       }
@@ -1921,6 +1942,9 @@
           names.add(keyName);
           addSliceToUI(rawName, colorValue);
         }
+
+        // **NEW: Update the results table header to match**
+        updateResultsTableHeader(Object.keys(chartColors));
         return true;
       }
 
@@ -2236,7 +2260,7 @@
                   // Display the Group Name (slice name) followed by the rounded count
                   return [sliceName, roundedValue];
                 },
-                //THIS IS THE MODIFIED FONT FUNCTION
+                //FONT FUNCTION
                 font: function (context) {
                   const dataset =
                     context.chart.data.datasets[context.datasetIndex];
@@ -2255,18 +2279,25 @@
                     size: size,
                   };
                 },
-                display: (context) => {
-                  const dataset =
-                    context.chart.data.datasets[context.datasetIndex];
-                  const totalValue = dataset.data.reduce(
-                    (acc, val) => acc + val,
-                    0
-                  );
-                  const currentValue = dataset.data[context.dataIndex];
-                  const slicePercentage = (currentValue / totalValue) * 100;
+                //
 
-                  return slicePercentage > 5; // Only show labels for slices larger than 5%
-                },
+                //
+                // display: (context) => {
+                //   const dataset =
+                //     context.chart.data.datasets[context.datasetIndex];
+                //   const totalValue = dataset.data.reduce(
+                //     (acc, val) => acc + val,
+                //     0
+                //   );
+                //   const currentValue = dataset.data[context.dataIndex];
+                //   const slicePercentage = (currentValue / totalValue) * 100;
+                //
+                //   return slicePercentage > 5; // This was hiding your label!
+                // },
+                //
+                // By removing the 'display' function, the plugin defaults to
+                // display: true, which shows all labels.
+                //
               },
             },
           },
@@ -2587,7 +2618,7 @@
         } finally {
           // Re-enable button
           addGroupBtn.disabled = false;
-          addGroupBtn.textContent = "Add Group";
+          addGroupBtn.textContent = "Add Team";
         }
       }
     </script>
