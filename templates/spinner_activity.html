@@ -209,10 +209,10 @@
       #experiment-content {
         display: flex;
         flex-direction: row;
-        gap: 30px;
+        gap: 20px;
         text-align: left;
-        margin-top: 25px;
-        padding-top: 25px;
+        margin-top: 15px;
+        padding-top: 10px;
         color: black;
       }
       #left-panel,
@@ -307,6 +307,11 @@
         cursor: pointer;
         align-self: center;
       }
+      #settings-btn:disabled {
+        background-color: #aaa;
+        border-color: #999;
+        cursor: not-allowed;
+      }
 
       #live-spin-target-group {
         display: flex;
@@ -388,9 +393,9 @@
         justify-content: space-around;
         align-items: stretch;
         margin-top: 25px;
-        padding: 20px 10px;
+        padding: 20px 10px 10px 10px;
         border-top: 1px solid #eee;
-        height: 220px;
+        height: 250px;
         background-color: #fafafa;
         border-radius: 8px;
         flex-wrap: wrap;
@@ -1104,6 +1109,7 @@
 
           const newTallyWrapper = document.createElement("div");
           newTallyWrapper.className = "tally-column-wrapper";
+          //Removed TALLY COUNT LABEL
           newTallyWrapper.innerHTML = `<div class="tally-column" id="${colorKey.replace(
             /\s/g,
             "-"
@@ -1125,6 +1131,8 @@
         experimentContent.style.display = "flex";
         resetBtn.style.display = "inline-block";
         buttonContainer.classList.add("active");
+
+        settingsBtn.disabled = true; // Disable start button on reload
 
         //Generate manual fields for "All Results" tab
         generateManualEntryFields(chartColors);
@@ -1355,6 +1363,8 @@
           showRealTimeResults();
 
           saveExperimentState();
+
+          settingsBtn.disabled = true; //Disable button after start
         }
       }
       function buildFixedSpinner() {
@@ -1562,7 +1572,7 @@
       function updateResultsTableHeader(colors) {
         const headerRow = document.querySelector("#results-table thead tr");
         headerRow.innerHTML =
-          "<th>Select</th><th>Group Name</th><th>Total Spins</th>";
+          "<th>Select</th><th>Team Name</th><th>Total Spins</th>";
         colors.forEach((color) => {
           const th = document.createElement("th");
           // Use the display name from the map if available, otherwise just capitalize the key
@@ -1965,6 +1975,7 @@
 
         const newTallyWrapper = document.createElement("div");
         newTallyWrapper.className = "tally-column-wrapper";
+        //Removed TALLY COUNT LABEL
         newTallyWrapper.innerHTML = `<div class="tally-column" id="${nameKey.replace(
           /\s/g,
           "-"
@@ -1984,32 +1995,26 @@
       function resetExperimentData() {
         if (
           !confirm(
-            "Are you sure? This will reset the counts and group name, allowing a new group to start."
+            `Are you sure? This will clear all ${totalSpins} recorded spins for "${currentGroupId}" and reset the count to 0.`
           )
         )
           return;
-        sessionStorage.removeItem(STATE_KEY_EXPERIMENT);
+
+        //Clear spins on the server
         clearSpinsOnServer(currentGroupId);
+
+        //Reset local counts
         totalSpins = 0;
         for (const key in counts) {
           counts[key] = 0;
         }
-        currentGroupId = null;
 
-        groupIdInput.value = "";
-        groupIdInput.disabled = false;
-        // Re-enable initial input
-        maxSpinsInput.disabled = false;
+        //Update the UI
+        updateTally(); //Updates the counter and clears the tally columns
+        showRealTimeResults(); // See totalSpins is 0 and show the placeholder
 
-        settingsContainer.style.display = "flex";
-        experimentContent.style.display = "none";
-        resetBtn.style.display = "none";
-        resultsContent.style.display = "none";
-        chartPlaceholder.style.display = "flex";
-        if (window["myResultsChart_chart"]) {
-          window["myResultsChart_chart"].destroy();
-        }
-        updateTally();
+        //Save the new empty state
+        saveExperimentState();
       }
 
       async function clearSpinsOnServer(groupIdToClear) {
@@ -2088,14 +2093,15 @@
         updateTallyChart();
       }
 
+      // Dynamic Tally Chart Update
       function updateTallyChart() {
         const firstColumn = tallyChartContainer.querySelector(".tally-column");
         if (!firstColumn) return;
 
+        // This is the height of the column itself, which accounts for the label below it.
         const containerHeight = firstColumn.clientHeight;
-        const maxIconSize = 30;
-        const minIconSize = 4;
-        const margin = 2;
+        const maxIconSize = 30; // Max size of an icon
+        const minIconSize = 2; // Min size
 
         Object.keys(counts).forEach((color) => {
           const safeId = color.replace(/\s/g, "-");
@@ -2106,11 +2112,20 @@
           column.innerHTML = "";
           if (count === 0) return;
 
-          let idealSize = containerHeight / count - margin;
-          const finalSize = Math.max(
-            minIconSize,
-            Math.min(maxIconSize, idealSize)
-          );
+          // Calculate the total height available per item (icon + margin)
+          let itemTotalHeight = containerHeight / count;
+
+          let finalSize;
+          let finalMargin;
+
+          if (itemTotalHeight < minIconSize) {
+            //Make items (too many) small and barely spaced.
+            finalSize = Math.max(1, itemTotalHeight * 0.9); // 1px min
+            finalMargin = Math.max(0.1, itemTotalHeight - finalSize); // 0.1px min
+          } else {
+            finalMargin = Math.max(1, itemTotalHeight * 0.2); // 20% margin, 1px min
+            finalSize = Math.min(maxIconSize, itemTotalHeight - finalMargin);
+          }
 
           for (let i = 0; i < count; i++) {
             const svg = document.createElementNS(
@@ -2120,8 +2135,8 @@
             svg.setAttribute("viewBox", "0 0 50 50");
             svg.style.width = `${finalSize}px`;
             svg.style.height = `${finalSize}px`;
-            svg.style.marginBottom = `${margin}px`;
-            svg.style.flexShrink = "0";
+            svg.style.marginBottom = `${finalMargin}px`;
+            svg.style.flexShrink = "0"; //To prevent shrinking
 
             const path = document.createElementNS(
               "http://www.w3.org/2000/svg",
@@ -2279,25 +2294,6 @@
                     size: size,
                   };
                 },
-                //
-
-                //
-                // display: (context) => {
-                //   const dataset =
-                //     context.chart.data.datasets[context.datasetIndex];
-                //   const totalValue = dataset.data.reduce(
-                //     (acc, val) => acc + val,
-                //     0
-                //   );
-                //   const currentValue = dataset.data[context.dataIndex];
-                //   const slicePercentage = (currentValue / totalValue) * 100;
-                //
-                //   return slicePercentage > 5; // This was hiding your label!
-                // },
-                //
-                // By removing the 'display' function, the plugin defaults to
-                // display: true, which shows all labels.
-                //
               },
             },
           },
@@ -2529,6 +2525,7 @@
 
         groupIdInput.value = "";
         groupIdInput.disabled = false;
+        settingsBtn.disabled = false; //Re-enable the start button
         maxSpinsInput.value = "20";
         liveMaxSpinsInput.value = "20";
 
