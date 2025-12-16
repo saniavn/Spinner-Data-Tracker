@@ -618,7 +618,7 @@
         gap: 10px;
       }
 
-      #welcome-code-input {
+      #welcome-id-input {
         flex-grow: 1;
         padding: 15px;
         font-size: 1.2em;
@@ -762,15 +762,12 @@
     <div id="welcome-container">
       <div class="welcome-content">
         <h1>Welcome to the Interactive Spinner!</h1>
-        <p>
-          This tool helps us track the spinner activites. Please enter your
-          classroom code provided by your teacher to get started!
-        </p>
+        <p>Please enter your Student ID to get started.</p>
         <div class="welcome-input-group">
           <input
             type="text"
-            id="welcome-code-input"
-            placeholder="Enter Classroom Code"
+            id="welcome-id-input"
+            placeholder="Enter Student ID"
             autocomplete="off"
           />
           <button id="welcome-start-btn">Let's Go!</button>
@@ -779,16 +776,11 @@
     </div>
 
     <h2 id="classroom-header" style="display: none">
-      Classroom:
+      Student ID:
       <span id="classroom-code-display" style="color: #3498db"></span>
     </h2>
 
-    <h2 id="classroom-header" style="display: none">
-      Classroom:
-      <span id="classroom-code-display" style="color: #3498db"></span>
-    </h2>
-
-    <div id="app-container">
+    <div id="app-container" style="display: none">
       <div id="mode-selection">
         <h1>Spinner Activity</h1>
         <h2>Step 1: Choose Your Mode</h2>
@@ -824,7 +816,7 @@
             My Experiment
           </button>
           <button class="tab-btn" id="all-results-tab">
-            All Teams Results
+            All Students Results
           </button>
         </div>
 
@@ -847,16 +839,7 @@
           </div>
 
           <div id="settings-container">
-            <h3 id="settings-header">Step 2: Enter Your Details</h3>
-            <div class="setting-group">
-              <label for="group-id-input">Team Name:</label>
-              <input
-                type="text"
-                id="group-id-input"
-                placeholder="e.g., Team Alpha"
-                autocomplete="off"
-              />
-            </div>
+            <h3 id="settings-header">Step 2: Settings</h3>
             <div class="setting-group" id="initial-max-spins-group">
               <label for="max-spins-input">Total Spins to Collect:</label>
               <input type="number" id="max-spins-input" value="20" min="1" />
@@ -914,13 +897,13 @@
         <div id="all-results-view" class="view">
           <div class="all-results-layout">
             <div class="all-results-left">
-              <h2>All Team Results</h2>
+              <h2>All Students Results</h2>
               <div class="table-container">
                 <table id="results-table">
                   <thead>
                     <tr>
                       <th>Select</th>
-                      <th>Team Name</th>
+                      <th>Student ID</th>
                       <th>Total Spins</th>
                     </tr>
                   </thead>
@@ -938,18 +921,18 @@
                 </p>
                 <div class="manual-entry-fields">
                   <div class="field-group">
-                    <label for="manual-group-name">Team Name</label>
+                    <label for="manual-group-name">Student ID</label>
                     <input
                       type="text"
                       id="manual-group-name"
-                      placeholder="e.g., Team Paper"
+                      placeholder="e.g., S-101"
                     />
                   </div>
                   <div
                     id="dynamic-manual-inputs"
                     style="display: contents"
                   ></div>
-                  <button id="add-group-btn" disabled>Add Team</button>
+                  <button id="add-group-btn" disabled>Add Student</button>
                 </div>
               </div>
             </div>
@@ -964,7 +947,7 @@
                     Download Print Template
                   </button>
                   <p>
-                    Select team(s) from the table to see a dynamic aggregated
+                    Select student(s) from the table to see a dynamic aggregated
                     chart here.
                   </p>
                 </div>
@@ -991,7 +974,7 @@
     </div>
 
     <script>
-      // EXPANDED ACCESSIBLE COLOR PALETTE (15 Colors)
+      //COLOR PALETTE (15 Colors)
       const ACCESSIBLE_COLOR_PALETTE = [
         { name: "Blue", hex: "#0072B2" },
         { name: "Orange", hex: "#D55E00" },
@@ -1010,22 +993,30 @@
         { name: "Cyan", hex: "#66CCEE" },
       ];
 
+      // Configuration
+      const DEFAULT_CLASS_CODE = "DEFAULT";
+
       let currentClassCode = null,
         currentMode = "fixed",
         maxSpins = 20,
-        currentGroupId = null;
+        currentGroupId = null; // This now holds the STUDENT ID
+
       let counts = {},
         chartColors = {},
         totalSpins = 0,
         allResultsData = {};
       let colorDisplayNameMap = {};
 
-      const STATE_KEY_CLASSCODE = "spinnerAppClassCode";
+      // Keys for Session Storage
+      const STATE_KEY_STUDENT_ID = "spinnerAppStudentId";
       const STATE_KEY_EXPERIMENT = "spinnerAppExperimentState";
 
       const welcomeContainer = document.getElementById("welcome-container");
       const appContainer = document.getElementById("app-container");
-      const welcomeCodeInput = document.getElementById("welcome-code-input");
+
+      // UPDATED ID
+      const welcomeIdInput = document.getElementById("welcome-id-input");
+
       const welcomeStartBtn = document.getElementById("welcome-start-btn");
       const logoutBtn = document.getElementById("logout-btn");
       const logoutContainer = document.getElementById("logout-container");
@@ -1047,7 +1038,9 @@
       );
       const settingsContainer = document.getElementById("settings-container");
       const settingsHeader = document.getElementById("settings-header");
-      const groupIdInput = document.getElementById("group-id-input");
+
+      // Removed group-id-input reference as it is deleted from HTML
+
       const initialMaxSpinsGroup = document.getElementById(
         "initial-max-spins-group"
       );
@@ -1117,9 +1110,6 @@
           tallyChartContainer.appendChild(newTallyWrapper);
         }
 
-        //Set inputs
-        groupIdInput.value = currentGroupId;
-        groupIdInput.disabled = true;
         liveMaxSpinsInput.value = savedMaxSpins;
         maxSpinsInput.value = savedMaxSpins; // Set the initial one too
 
@@ -1146,16 +1136,20 @@
       }
 
       (function autoLogin() {
-        const savedClassCode = sessionStorage.getItem(STATE_KEY_CLASSCODE);
+        // We now check for saved STUDENT ID, not Class Code
+        const savedStudentId = sessionStorage.getItem(STATE_KEY_STUDENT_ID);
 
-        if (savedClassCode) {
-          // We have a saved code! Log the user in.
-          currentClassCode = savedClassCode;
-          welcomeCodeInput.value = savedClassCode; // Pre-fill the input
+        if (savedStudentId) {
+          // We have a saved ID! Log the user in.
+          currentGroupId = savedStudentId;
+          // Set dummy class code
+          currentClassCode = DEFAULT_CLASS_CODE;
+
+          welcomeIdInput.value = savedStudentId; // Pre-fill the input
 
           // Update the UI just like in initializeApp()
           document.getElementById("classroom-code-display").textContent =
-            currentClassCode;
+            currentGroupId;
           document.getElementById("classroom-header").style.display = "block";
           welcomeContainer.style.display = "none";
           appContainer.style.display = "block";
@@ -1191,18 +1185,22 @@
 
       //Initial Setup & Event Listeners
       function initializeApp() {
-        const code = welcomeCodeInput.value.trim().toUpperCase();
-        if (!code) {
-          alert("Please enter a classroom code to begin!");
+        const studentId = welcomeIdInput.value.trim().toUpperCase();
+        if (!studentId) {
+          alert("Please enter your Student ID to begin!");
           return;
         }
 
-        currentClassCode = code;
-        sessionStorage.setItem(STATE_KEY_CLASSCODE, currentClassCode);
+        // Set the Group ID to the Student ID
+        currentGroupId = studentId;
+        // Use default class code
+        currentClassCode = DEFAULT_CLASS_CODE;
+
+        sessionStorage.setItem(STATE_KEY_STUDENT_ID, currentGroupId);
 
         // Update the UI
         document.getElementById("classroom-code-display").textContent =
-          currentClassCode;
+          currentGroupId;
         document.getElementById("classroom-header").style.display = "block";
 
         // Hide the welcome screen and show the main app
@@ -1218,7 +1216,7 @@
           )
         )
           return;
-        sessionStorage.removeItem(STATE_KEY_CLASSCODE);
+        sessionStorage.removeItem(STATE_KEY_STUDENT_ID);
         sessionStorage.removeItem(STATE_KEY_EXPERIMENT);
         // Clear all local state variables
         currentClassCode = null;
@@ -1234,7 +1232,7 @@
 
       // Add listeners for the new welcome screen
       welcomeStartBtn.addEventListener("click", initializeApp);
-      welcomeCodeInput.addEventListener("keyup", (event) => {
+      welcomeIdInput.addEventListener("keyup", (event) => {
         if (event.key === "Enter") {
           initializeApp();
         }
@@ -1281,14 +1279,14 @@
           customSpinnerSetupDiv.style.display = "none";
           document.getElementById("manual-entry-info").textContent =
             "Manually add data for the Orange, Blue, Green, Yellow spinner.";
-          settingsHeader.textContent = "Step 2: Enter Your Details";
+          settingsHeader.textContent = "Step 2: Settings";
           settingsBtn.textContent = "Start Experiment";
         } else {
           // custom mode
           customSpinnerSetupDiv.style.display = "block";
           document.getElementById("manual-entry-info").textContent =
             'Define your spinner in "My Experiment" to enable manual entry.';
-          settingsHeader.textContent = "Step 3: Enter Your Details";
+          settingsHeader.textContent = "Step 3: Settings";
           settingsBtn.textContent = "Create Spinner & Start";
           document.getElementById("dynamic-manual-inputs").innerHTML = "";
           document.getElementById("add-group-btn").disabled = true;
@@ -1322,20 +1320,18 @@
       }
 
       function startExperiment() {
-        const inputId = groupIdInput.value.trim();
+        // GroupID is already set from the welcome screen
+        const inputId = currentGroupId;
         const inputMaxSpins = maxSpinsInput.value.trim();
 
         if (
-          !inputId ||
           !inputMaxSpins ||
           isNaN(parseInt(inputMaxSpins)) ||
           parseInt(inputMaxSpins) <= 0
         ) {
-          alert("Please enter a valid Group Name and a Total Spins count.");
+          alert("Please enter a valid Total Spins count.");
           return;
         }
-
-        currentGroupId = inputId;
 
         // Set the value of the live input to the initial setting
         liveMaxSpinsInput.value = parseInt(inputMaxSpins);
@@ -1354,9 +1350,6 @@
           experimentContent.style.display = "flex";
           resetBtn.style.display = "inline-block";
           buttonContainer.classList.add("active");
-
-          // Disable Group ID input once started
-          groupIdInput.disabled = true;
 
           generateManualEntryFields(chartColors);
 
@@ -1387,7 +1380,7 @@
           ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Yellow").hex
         );
 
-        // **NEW: Update the results table header to match**
+        // **Update the results table header to match**
         updateResultsTableHeader(Object.keys(chartColors));
       }
       async function fetchAllResults() {
@@ -1398,7 +1391,7 @@
         const currentSignature = localColorKeys.sort().join(",");
 
         try {
-          //Always fetch data, regardless of local state
+          //Fetch data, regardless of local state
           const response = await fetch(
             `/api/results?classroom_code=${currentClassCode}`
           );
@@ -1417,9 +1410,9 @@
           //Handle case where there are no results for this class at all
           if (!data.experiments || data.experiments.length === 0) {
             tableBody.innerHTML =
-              '<tr><td colspan="100%">No groups have recorded results for this classroom yet.</td></tr>';
+              '<tr><td colspan="100%">No students have recorded results yet.</td></tr>';
 
-            // **Update: Use the local signature if it exists, otherwise clear**
+            // **Use the local signature if it exists, otherwise clear**
             if (currentSignature) {
               updateResultsTableHeader(localColorKeys);
             } else {
@@ -1484,7 +1477,7 @@
           // Temporarily set the global map for the header function
           const originalColorMap = colorDisplayNameMap;
 
-          // **Check: If we are showing the user's *own* experiment, use their local map**
+          // **If we are showing the user's *own* experiment, use their local map**
           if (signature === currentSignature) {
             // Use the local map, which has the correct capitalization/names
             updateResultsTableHeader(localColorKeys);
@@ -1533,7 +1526,7 @@
             }
           }
 
-          // Enable manual entry *if* a local spinner is defined
+          // Enable manual entry if a local spinner is defined
           if (currentSignature) {
             generateManualEntryFields(chartColors);
           } else {
@@ -1572,7 +1565,7 @@
       function updateResultsTableHeader(colors) {
         const headerRow = document.querySelector("#results-table thead tr");
         headerRow.innerHTML =
-          "<th>Select</th><th>Team Name</th><th>Total Spins</th>";
+          "<th>Select</th><th>Student ID</th><th>Total Spins</th>";
         colors.forEach((color) => {
           const th = document.createElement("th");
           // Use the display name from the map if available, otherwise just capitalize the key
@@ -1617,7 +1610,7 @@
         const firstGroupId = Object.keys(allResultsData)[0];
         const colorOrder = Object.keys(allResultsData[firstGroupId]).sort();
         const headers = [
-          "Group Name",
+          "Student ID",
           "Total Spins",
           ...colorOrder.map(getOriginalDisplayName),
         ];
@@ -1643,10 +1636,7 @@
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute(
-          "download",
-          `${currentClassCode}_all_spinner_data.csv`
-        );
+        link.setAttribute("download", `spinner_data.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1658,13 +1648,13 @@
           "#results-table .group-checkbox:checked"
         );
         if (selectedCheckboxes.length === 0) {
-          alert("Please select at least one group to delete.");
+          alert("Please select at least one student to delete.");
           return;
         }
 
         if (
           !confirm(
-            `Are you sure you want to delete data for ${selectedCheckboxes.length} group(s)? This cannot be undone.`
+            `Are you sure you want to delete data for ${selectedCheckboxes.length} student(s)? This cannot be undone.`
           )
         ) {
           return;
@@ -1679,9 +1669,10 @@
           const promise = fetch("/api/clear_spins", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            // UPDATED to send student_id instead of group_id
             body: JSON.stringify({
               classroom_code: currentClassCode,
-              group_id: groupId,
+              student_id: groupId,
             }),
           })
             .then(() => {
@@ -1691,7 +1682,7 @@
             })
             .catch((error) => {
               console.error(
-                `Failed to delete group ${groupId} on server:`,
+                `Failed to delete student ${groupId} on server:`,
                 error
               );
             });
@@ -1699,7 +1690,7 @@
         });
 
         await Promise.all(deletionPromises);
-        alert(`${selectedCheckboxes.length} group(s) have been deleted.`);
+        alert(`${selectedCheckboxes.length} student(s) have been deleted.`);
         combineSelectedResults(); // Update the chart after deletion
       }
 
@@ -1714,8 +1705,11 @@
       function generateManualEntryFields(colors) {
         const container = document.getElementById("dynamic-manual-inputs");
         container.innerHTML = "";
-        // colors is chartColors, which is {key: hex}. The key is the lowercase name.
-        for (const colorKey in colors) {
+
+        //Sort keys alphabetically to match the Table Headers
+        const sortedKeys = Object.keys(colors).sort();
+
+        for (const colorKey of sortedKeys) {
           const displayName = getOriginalDisplayName(colorKey);
           const fieldGroup = document.createElement("div");
           fieldGroup.className = "field-group";
@@ -1734,7 +1728,7 @@
           container.appendChild(fieldGroup);
         }
         document.getElementById("manual-entry-info").textContent =
-          "Add data for another group using the same spinner configuration.";
+          "Add data for another student using the same spinner configuration.";
         document.getElementById("add-group-btn").disabled = false;
       }
 
@@ -1742,11 +1736,11 @@
         const groupNameInput = document.getElementById("manual-group-name");
         const groupName = groupNameInput.value.trim();
         if (!groupName) {
-          alert("Please enter a group name.");
+          alert("Please enter a Student ID.");
           return;
         }
         if (allResultsData[groupName]) {
-          alert("A group with this name already exists.");
+          alert("A student with this ID already exists.");
           return;
         }
 
@@ -1817,7 +1811,7 @@
 
           if (referenceSignature !== currentSignature) {
             alert(
-              "Incompatible groups selected. You can only combine groups that have the exact same set of colors. Unchecking the last selected group."
+              "Incompatible students selected. You can only combine results that have the exact same set of colors. Unchecking the last selected."
             );
             checkbox.checked = false;
             incompatibleFound = true;
@@ -1869,7 +1863,7 @@
         summaryDiv.innerHTML = summaryHTML;
         document.getElementById(
           "combined-info"
-        ).textContent = `Combined results from Teams: ${selectedGroupIds.join(
+        ).textContent = `Combined results from Students: ${selectedGroupIds.join(
           ", "
         )} (${totalCombinedSpins} total spins)`;
 
@@ -2015,14 +2009,16 @@
       }
 
       async function clearSpinsOnServer(groupIdToClear) {
-        if (!groupIdToClear || !currentClassCode) return;
+        // Just send the Student ID (groupIdToClear)
+        if (!groupIdToClear) return;
         try {
           await fetch("/api/clear_spins", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            // UPDATED: Use student_id
             body: JSON.stringify({
               classroom_code: currentClassCode,
-              group_id: groupIdToClear,
+              student_id: groupIdToClear,
             }),
           });
         } catch (error) {
@@ -2199,8 +2195,9 @@
           await fetch("/update_spin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            // UPDATED: Now sends 'student_id'
             body: JSON.stringify({
-              group_id: groupId,
+              student_id: groupId,
               color: color, // The key (lowercase name)
               action: action,
               classroom_code: currentClassCode,
@@ -2321,7 +2318,7 @@
         }
 
         // Determine the group name (same as before)
-        let groupName = "Unknown_Group";
+        let groupName = "Unknown_Student";
         if (
           canvasId === "myResultsChart" &&
           typeof currentGroupId !== "undefined" &&
@@ -2338,7 +2335,7 @@
             );
             groupName = `Combined: ${selectedGroupIds.join(", ")}`;
             if (groupName.length > 50) {
-              groupName = `Combined: ${selectedCheckboxes.length} Groups`;
+              groupName = `Combined: ${selectedCheckboxes.length} Students`;
             }
           } else {
             groupName = "Combined Results (No Selection)";
@@ -2492,7 +2489,7 @@
         }
       }
       function goBackToModeSelection() {
-        if (totalSpins > 0 || groupIdInput.value.trim() !== "") {
+        if (totalSpins > 0) {
           if (
             !confirm(
               "Are you sure? This will abandon your current experiment progress and return to the mode selection screen."
@@ -2503,7 +2500,7 @@
         }
         sessionStorage.removeItem(STATE_KEY_EXPERIMENT);
         totalSpins = 0;
-        currentGroupId = null;
+        // currentGroupId is NOT reset here so they stay logged in
         allResultsData = {};
         clearSpinnerUI();
         if (window["myResultsChart_chart"]) {
@@ -2520,8 +2517,6 @@
         settingsContainer.style.display = "flex";
         resetBtn.style.display = "none";
 
-        groupIdInput.value = "";
-        groupIdInput.disabled = false;
         settingsBtn.disabled = false; //Re-enable the start button
         maxSpinsInput.value = "20";
         liveMaxSpinsInput.value = "20";
@@ -2540,13 +2535,13 @@
         const groupNameInput = document.getElementById("manual-group-name");
         const groupName = groupNameInput.value.trim();
         if (!groupName) {
-          alert("Please enter a group name.");
+          alert("Please enter a Student ID.");
           return;
         }
 
         // This local check is still fast and useful
         if (allResultsData[groupName]) {
-          alert("A group with this name already exists in the local table.");
+          alert("A student with this ID already exists in the local table.");
           return;
         }
 
@@ -2612,7 +2607,7 @@
         } finally {
           // Re-enable button
           addGroupBtn.disabled = false;
-          addGroupBtn.textContent = "Add Team";
+          addGroupBtn.textContent = "Add Student";
         }
       }
     </script>
