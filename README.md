@@ -4,7 +4,7 @@ This is a classroom web app for running spinner experiments, logging results in 
 
 ## How it works
 
-1. Enter a class code to keep your class’s data together.
+1. Enter your ID (a number)
 
 
 2. Choose between **Fixed** or **Custom** mode:
