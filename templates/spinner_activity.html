@@ -2216,9 +2216,6 @@
           window[canvasId + "_chart"].destroy();
         }
 
-        // Proper rounding (round up or down)
-        const customRound = (num) => Math.round(num);
-
         const formattedLabels = labels.map((labelKey) =>
           getOriginalDisplayName(labelKey)
         );
@@ -2258,18 +2255,27 @@
                 anchor: "end",
                 align: "start",
                 offset: 10,
-
                 color: "#000",
-                // Show the Group Name (Slice Name) AND the rounded count
+
+                // Show the Group Name (Slice Name) AND Rounded Percentage ONLY
                 formatter: (value, context) => {
                   const sliceName =
                     context.chart.data.labels[context.dataIndex];
-                  const roundedValue = customRound(value);
 
-                  // Display the Group Name (slice name) followed by the rounded count
-                  return [sliceName, roundedValue];
+                  // Calculate Percentage
+                  const dataset = context.chart.data.datasets[0];
+                  const total = dataset.data.reduce((acc, val) => acc + val, 0);
+
+                  // Use Math.round() for whole numbers
+                  const percentage =
+                    total > 0 ? Math.round((value / total) * 100) : 0;
+
+                  // Line 1: Name
+                  // Line 2: Percentage% (No decimals)
+                  return [sliceName, `${percentage}%`];
                 },
-                //FONT FUNCTION
+
+                // FONT FUNCTION
                 font: function (context) {
                   const dataset =
                     context.chart.data.datasets[context.datasetIndex];
