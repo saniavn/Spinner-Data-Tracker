@@ -37,7 +37,7 @@ def index():
 def update_spin():
     data = request.get_json()
     
-    # WE CHANGED THIS: We now expect 'student_id' instead of group_id/class_code
+    # Expect 'student_id' instead of group_id/class_code
     student_id = data.get('student_id') 
     color = data.get('color')
     action = data.get('action')
