@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -18,7 +18,7 @@
       #back-to-mode-btn {
         padding: 10px 15px;
         font-size: 1em;
-        background-color: #3498db; /* Blue color */
+        background-color: #3498db;
         color: white;
         border: none;
         border-radius: 8px;
@@ -32,7 +32,7 @@
       #logout-btn {
         padding: 10px 15px;
         font-size: 1em;
-        background-color: #c0392b; /* Red color */
+        background-color: #c0392b;
         color: white;
         border: none;
         border-radius: 8px;
@@ -48,7 +48,8 @@
         box-sizing: border-box;
       }
       body {
-        font-family: "Comic Sans MS", "Chalkboard SE", "Marker Felt",
+        font-family:
+          "Comic Sans MS", "Chalkboard SE", "Marker Felt",
           "Arial Rounded MT Bold", sans-serif;
         min-height: 100vh;
         margin: 0;
@@ -71,9 +72,9 @@
       #reset-btn {
         padding: 10px 20px;
         font-size: 1em;
-        background-color: #f0f0f0; /* Lighter background */
-        color: #555; /* Dark gray text */
-        border: 2px solid #ddd; /* Light border */
+        background-color: #f0f0f0;
+        color: #555;
+        border: 2px solid #ddd;
         border-radius: 8px;
         cursor: pointer;
         transition: background-color 0.2s;
@@ -87,7 +88,6 @@
         color: #4a4a4a;
       }
 
-      /* Mode selection styles */
       #mode-selection {
         padding: 20px;
       }
@@ -152,7 +152,7 @@
         display: flex;
         gap: 10px;
         align-items: center;
-        width: fit-content; /* Contain the content */
+        width: fit-content;
         padding: 8px;
         border: 1px solid #eee;
         border-radius: 8px;
@@ -328,7 +328,7 @@
         width: 80px;
         padding: 5px 8px;
         font-size: 1em;
-        border: 2px solid #2ecc71; /* Green border for live setting */
+        border: 2px solid #2ecc71;
         border-radius: 5px;
         text-align: center;
       }
@@ -379,7 +379,9 @@
         align-items: center;
         justify-content: center;
         line-height: 1;
-        transition: background-color 0.2s, transform 0.1s;
+        transition:
+          background-color 0.2s,
+          transform 0.1s;
         flex-shrink: 0;
       }
       .op-btn:hover {
@@ -419,31 +421,49 @@
         font-size: 0.9em;
       }
 
-      /* STyle start */
-      .table-container {
+      /* Dynamic Table Styles */
+      #dynamic-tables-container {
         width: 100%;
         overflow-x: auto;
         overflow-y: auto;
-        border: 1px solid #ddd;
         border-radius: 8px;
         margin-bottom: 10px;
         flex: 1;
         min-height: 0;
       }
-      #results-table {
+      .table-wrapper {
+        margin-bottom: 30px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background-color: white;
+      }
+      .table-title {
+        background-color: #ecf0f1;
+        padding: 10px;
+        margin: 0;
+        border-bottom: 1px solid #ddd;
+        border-radius: 8px 8px 0 0;
+        font-size: 1.1em;
+        color: #2c3e50;
+      }
+      .results-table {
         width: 100%;
         border-collapse: collapse;
         text-align: center;
       }
-      #results-table th,
-      #results-table td {
+      .results-table th,
+      .results-table td {
         padding: 12px 8px;
-        border: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
       }
-      #results-table thead {
+      .results-table thead {
         background-color: #3498db;
         color: white;
       }
+      .results-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
       #manual-entry {
         margin-top: 30px;
         padding: 20px;
@@ -536,33 +556,17 @@
         top: 20px;
       }
       #combined-results-view {
-        height: 480px; /* Sets a fixed height for the container */
+        height: 480px;
         display: flex;
         flex-direction: column;
         justify-content: center;
       }
       #combined-content .chart-container {
-        max-width: 260px; /* Makes the pie chart smaller */
+        max-width: 260px;
         height: 260px;
-        flex-shrink: 0; /* Prevents the chart from shrinking too much */
+        flex-shrink: 0;
       }
 
-      #combined-summary-text {
-        font-size: 0.9em; /* Makes the summary text smaller */
-        line-height: 1.5; /* Tightens up the line spacing */
-        padding: 10px 15px;
-      }
-
-      #combined-summary-text p {
-        margin: 6px 0;
-      }
-
-      #combined-placeholder {
-        color: #888;
-        padding: 50px 20px;
-      }
-
-      /* .combined-layout-container { display: flex; flex-direction: row; align-items: center; gap: 30px; margin-top: 20px; } */
       #combined-summary-text {
         flex: 1;
         text-align: left;
@@ -593,7 +597,6 @@
         background-color: #f0f8ff;
         text-align: center;
       }
-
       .welcome-content {
         background-color: white;
         padding: 40px 50px;
@@ -601,23 +604,19 @@
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         max-width: 700px;
       }
-
       .welcome-content h1 {
         color: #3498db;
         margin-bottom: 20px;
       }
-
       .welcome-content p {
         font-size: 1.1em;
         color: #555;
         margin-bottom: 30px;
       }
-
       .welcome-input-group {
         display: flex;
         gap: 10px;
       }
-
       #welcome-id-input {
         flex-grow: 1;
         padding: 15px;
@@ -627,7 +626,6 @@
         text-align: center;
         text-transform: uppercase;
       }
-
       #welcome-start-btn {
         padding: 15px 30px;
         font-size: 1.2em;
@@ -639,29 +637,22 @@
         cursor: pointer;
         transition: background-color 0.2s;
       }
-
       #welcome-start-btn:hover {
         background-color: #27ae60;
       }
 
       @media (max-width: 800px) {
         body {
-          padding: 10px; /* Reduce padding on small screens */
+          padding: 10px;
         }
-
-        /* Stack the main content columns vertically */
         #experiment-content,
         .all-results-layout {
           flex-direction: column;
         }
-
-        /* Stack the mode description boxes vertically */
         .mode-description {
           flex-direction: column;
           align-items: center;
         }
-
-        /* Make the right panel's sticky positioning work better in a single column */
         .all-results-right {
           position: static;
           width: 100%;
@@ -676,81 +667,52 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 30px; /* Space between text and chart */
+        gap: 30px;
         width: 100%;
         margin-top: 20px;
       }
-
       .final-results-layout #my-results-text {
         flex: 1;
-        text-align: left !important; /* Ensures text is left-aligned */
+        text-align: left !important;
       }
-
       .final-results-layout .chart-container {
         flex: 1.2;
         max-width: 300px;
         height: 300px;
       }
-
-      #download-chart-btn {
-        padding: 12px 25px;
-        font-size: 1.1em;
-        font-weight: bold;
-        color: white;
-        background-color: #27ae60; /* A strong green color (Emerald) */
-        border: 2px solid #1e8449; /* Darker green border for depth */
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.2s, transform 0.1s;
-        /* Spacing */
-        margin: 15px auto 10px auto;
-        display: block;
-        width: fit-content;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-
-      #download-chart-btn:hover {
-        background-color: #1e8449; /* Darken on hover */
-        transform: translateY(-1px); /* Slight lift effect */
-      }
-
-      #download-chart-btn:active {
-        background-color: #1b6a37; /* Darker on click */
-        transform: translateY(1px);
-      }
-
-      #final-results-title {
-        margin-bottom: 5px;
-      }
-
-      #final-results-summary {
-        margin-top: 0;
-      }
-
+      #download-chart-btn,
       .download-btn {
         padding: 12px 25px;
         font-size: 1.1em;
         font-weight: bold;
         color: white;
-        background-color: #27ae60; /* A strong green color (Emerald) */
-        border: 2px solid #1e8449; /* Darker green border for depth */
+        background-color: #27ae60;
+        border: 2px solid #1e8449;
         border-radius: 8px;
         cursor: pointer;
-        transition: background-color 0.2s, transform 0.1s;
+        transition:
+          background-color 0.2s,
+          transform 0.1s;
         margin: 15px auto 10px auto;
         display: block;
         width: fit-content;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       }
-
+      #download-chart-btn:hover,
       .download-btn:hover {
-        background-color: #1e8449; /* Darken on hover */
+        background-color: #1e8449;
         transform: translateY(-1px);
       }
-
+      #download-chart-btn:active,
       .download-btn:active {
-        background-color: #1b6a37; /* Darker on click */
+        background-color: #1b6a37;
         transform: translateY(1px);
+      }
+      #final-results-title {
+        margin-bottom: 5px;
+      }
+      #final-results-summary {
+        margin-top: 0;
       }
     </style>
   </head>
@@ -898,18 +860,7 @@
           <div class="all-results-layout">
             <div class="all-results-left">
               <h2>All Students Results</h2>
-              <div class="table-container">
-                <table id="results-table">
-                  <thead>
-                    <tr>
-                      <th>Select</th>
-                      <th>Student ID</th>
-                      <th>Total Spins</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
-              </div>
+              <div id="dynamic-tables-container"></div>
               <div id="combine-controls">
                 <button id="delete-selected-btn">Delete Selected</button>
                 <button id="download-all-btn">Download All Data</button>
@@ -942,12 +893,13 @@
                 <div id="combined-placeholder">
                   <button
                     id="download-chart-btn"
-                    onclick="downloadChart('myResultsChart')"
+                    onclick="downloadChart('combinedChart')"
+                    style="display: none"
                   >
                     Download Print Template
                   </button>
                   <p>
-                    Select student(s) from the table to see a dynamic aggregated
+                    Select student(s) from a table to see a dynamic aggregated
                     chart here.
                   </p>
                 </div>
@@ -961,7 +913,7 @@
                   </div>
                   <button
                     id="download-chart-btn"
-                    onclick="downloadChart('myResultsChart')"
+                    onclick="downloadChart('combinedChart')"
                   >
                     Download Print Template
                   </button>
@@ -993,30 +945,23 @@
         { name: "Cyan", hex: "#66CCEE" },
       ];
 
-      // Configuration
       const DEFAULT_CLASS_CODE = "DEFAULT";
-
       let currentClassCode = null,
         currentMode = "fixed",
         maxSpins = 20,
-        currentGroupId = null; // This now holds the STUDENT ID
-
+        currentGroupId = null;
       let counts = {},
         chartColors = {},
         totalSpins = 0,
         allResultsData = {};
       let colorDisplayNameMap = {};
 
-      // Keys for Session Storage
       const STATE_KEY_STUDENT_ID = "spinnerAppStudentId";
       const STATE_KEY_EXPERIMENT = "spinnerAppExperimentState";
 
       const welcomeContainer = document.getElementById("welcome-container");
       const appContainer = document.getElementById("app-container");
-
-      // UPDATED ID
       const welcomeIdInput = document.getElementById("welcome-id-input");
-
       const welcomeStartBtn = document.getElementById("welcome-start-btn");
       const logoutBtn = document.getElementById("logout-btn");
       const logoutContainer = document.getElementById("logout-container");
@@ -1027,32 +972,26 @@
       const fixedModeBtn = document.getElementById("fixed-mode-btn");
       const customModeBtn = document.getElementById("custom-mode-btn");
       const customSpinnerSetupDiv = document.getElementById(
-        "custom-spinner-setup"
+        "custom-spinner-setup",
       );
       const generateSliceFieldsBtn = document.getElementById(
-        "generate-slice-fields-btn"
+        "generate-slice-fields-btn",
       );
       const numSlicesInput = document.getElementById("num-slices-input");
       const sliceDefinitionsContainer = document.getElementById(
-        "slice-definitions-container"
+        "slice-definitions-container",
       );
       const settingsContainer = document.getElementById("settings-container");
       const settingsHeader = document.getElementById("settings-header");
 
-      // Removed group-id-input reference as it is deleted from HTML
-
-      const initialMaxSpinsGroup = document.getElementById(
-        "initial-max-spins-group"
-      );
-      const maxSpinsInput = document.getElementById("max-spins-input"); // Initial setting
-      const liveMaxSpinsInput = document.getElementById("live-max-spins-input"); // Live setting
-
+      const liveMaxSpinsInput = document.getElementById("live-max-spins-input");
+      const maxSpinsInput = document.getElementById("max-spins-input");
       const settingsBtn = document.getElementById("settings-btn");
       const resetBtn = document.getElementById("reset-btn");
       const experimentContent = document.getElementById("experiment-content");
       const buttonContainer = document.getElementById("button-container");
       const tallyChartContainer = document.getElementById(
-        "tally-chart-container"
+        "tally-chart-container",
       );
       const spinCounter = document.getElementById("spin-counter");
       const chartPlaceholder = document.getElementById("chart-placeholder");
@@ -1061,17 +1000,15 @@
       const allResultsTab = document.getElementById("all-results-tab");
       const myExperimentView = document.getElementById("my-experiment-view");
       const allResultsView = document.getElementById("all-results-view");
-      const resultsTable = document.getElementById("results-table");
-      const manualEntryDiv = document.getElementById("manual-entry");
+      const dynamicTablesContainer = document.getElementById(
+        "dynamic-tables-container",
+      );
       const addGroupBtn = document.getElementById("add-group-btn");
       const deleteSelectedBtn = document.getElementById("delete-selected-btn");
       const downloadAllBtn = document.getElementById("download-all-btn");
 
-      let myChart;
-
       function saveExperimentState() {
         if (!currentGroupId) return;
-
         const state = {
           mode: currentMode,
           groupId: currentGroupId,
@@ -1085,69 +1022,47 @@
         sessionStorage.setItem(STATE_KEY_EXPERIMENT, JSON.stringify(state));
       }
 
-      // This function assumes all global vars (counts, chartColors, etc.) are already set from the loader.
       function rebuildExperimentUI(savedMaxSpins) {
-        //Rebuild buttons and tally columns from loaded chartColors
         for (const colorKey in chartColors) {
-          const displayName = colorDisplayNameMap[colorKey] || colorKey; // Fallback
+          const displayName = colorDisplayNameMap[colorKey] || colorKey;
           const colorValue = chartColors[colorKey];
-
           const newControl = document.createElement("div");
           newControl.className = "color-control";
           newControl.innerHTML = `
-                        <button class="op-btn minus-btn" data-color="${colorKey}">-</button>
-                        <div class="color-label" style="background-color: ${colorValue};"> ${displayName} </div>
-                        <button class="op-btn plus-btn" data-color="${colorKey}">+</button>`;
+            <button class="op-btn minus-btn" data-color="${colorKey}">-</button>
+            <div class="color-label" style="background-color: ${colorValue};"> ${displayName} </div>
+            <button class="op-btn plus-btn" data-color="${colorKey}">+</button>`;
           buttonContainer.appendChild(newControl);
 
           const newTallyWrapper = document.createElement("div");
           newTallyWrapper.className = "tally-column-wrapper";
-          //Removed TALLY COUNT LABEL
-          newTallyWrapper.innerHTML = `<div class="tally-column" id="${colorKey.replace(
-            /\s/g,
-            "-"
-          )}-tally-column"></div><div class="tally-label">${displayName}</div>`;
+          newTallyWrapper.innerHTML = `<div class="tally-column" id="${colorKey.replace(/\s/g, "-")}-tally-column"></div><div class="tally-label">${displayName}</div>`;
           tallyChartContainer.appendChild(newTallyWrapper);
         }
 
         liveMaxSpinsInput.value = savedMaxSpins;
-        maxSpinsInput.value = savedMaxSpins; // Set the initial one too
-
-        //Show/Hide containers
-        modeSelectionDiv.style.display = "none"; // Hide mode selection
-        mainContent.style.display = "block"; // Show main content
+        maxSpinsInput.value = savedMaxSpins;
+        modeSelectionDiv.style.display = "none";
+        mainContent.style.display = "block";
         settingsContainer.style.display = "none";
         customSpinnerSetupDiv.style.display = "none";
         experimentContent.style.display = "flex";
         resetBtn.style.display = "inline-block";
         buttonContainer.classList.add("active");
+        settingsBtn.disabled = true;
 
-        settingsBtn.disabled = true; // Disable start button on reload
-
-        //Generate manual fields for "All Results" tab
         generateManualEntryFields(chartColors);
-
-        // **Update the results table header to match**
-        updateResultsTableHeader(Object.keys(chartColors));
-
-        //Update UI with loaded data
         updateTally();
         showRealTimeResults();
       }
 
       (function autoLogin() {
-        // We now check for saved STUDENT ID, not Class Code
         const savedStudentId = sessionStorage.getItem(STATE_KEY_STUDENT_ID);
-
         if (savedStudentId) {
-          // We have a saved ID! Log the user in.
           currentGroupId = savedStudentId;
-          // Set dummy class code
           currentClassCode = DEFAULT_CLASS_CODE;
+          welcomeIdInput.value = savedStudentId;
 
-          welcomeIdInput.value = savedStudentId; // Pre-fill the input
-
-          // Update the UI just like in initializeApp()
           document.getElementById("classroom-code-display").textContent =
             currentGroupId;
           document.getElementById("classroom-header").style.display = "block";
@@ -1155,134 +1070,99 @@
           appContainer.style.display = "block";
           logoutContainer.style.display = "block";
 
-          //Check for a saved experiment
           const savedExperimentState =
             sessionStorage.getItem(STATE_KEY_EXPERIMENT);
           if (savedExperimentState) {
             try {
               const state = JSON.parse(savedExperimentState);
-
-              // Load state into global vars
               currentMode = state.mode;
               currentGroupId = state.groupId;
               counts = state.counts;
               totalSpins = state.totalSpins;
               chartColors = state.chartColors;
               colorDisplayNameMap = state.displayNameMap;
-
-              // Rebuild the UI from the loaded state
               rebuildExperimentUI(state.maxSpins);
-
-              // Set the correct tab
               switchTab(state.activeTab || "my-experiment");
             } catch (e) {
-              console.error("Failed to parse saved state:", e);
-              sessionStorage.removeItem(STATE_KEY_EXPERIMENT); // Clear bad data
+              sessionStorage.removeItem(STATE_KEY_EXPERIMENT);
             }
           }
         }
       })();
 
-      //Initial Setup & Event Listeners
       function initializeApp() {
         const studentId = welcomeIdInput.value.trim().toUpperCase();
-        if (!studentId) {
-          alert("Please enter your Student ID to begin!");
-          return;
-        }
-
-        // Set the Group ID to the Student ID
+        if (!studentId) return alert("Please enter your Student ID to begin!");
         currentGroupId = studentId;
-        // Use default class code
         currentClassCode = DEFAULT_CLASS_CODE;
-
         sessionStorage.setItem(STATE_KEY_STUDENT_ID, currentGroupId);
 
-        // Update the UI
         document.getElementById("classroom-code-display").textContent =
           currentGroupId;
         document.getElementById("classroom-header").style.display = "block";
-
-        // Hide the welcome screen and show the main app
         welcomeContainer.style.display = "none";
         appContainer.style.display = "block";
-        logoutContainer.style.display = "block"; // Show logout button
+        logoutContainer.style.display = "block";
       }
 
       function logout() {
         if (
           !confirm(
-            "Are you sure you want to log out? This will reset the application to the welcome screen."
+            "Are you sure you want to log out? This will reset the application to the welcome screen.",
           )
         )
           return;
         sessionStorage.removeItem(STATE_KEY_STUDENT_ID);
         sessionStorage.removeItem(STATE_KEY_EXPERIMENT);
-        // Clear all local state variables
         currentClassCode = null;
         currentGroupId = null;
-        logoutContainer.style.display = "none";
-        appContainer.style.display = "none";
-        welcomeContainer.style.display = "flex";
-        document.getElementById("classroom-header").style.display = "none";
-
-        // Reload window state to ensure everything is clean (easiest way)
         window.location.reload();
       }
 
-      // Add listeners for the new welcome screen
       welcomeStartBtn.addEventListener("click", initializeApp);
       welcomeIdInput.addEventListener("keyup", (event) => {
-        if (event.key === "Enter") {
-          initializeApp();
-        }
+        if (event.key === "Enter") initializeApp();
       });
-      // Add listener for the new logout button
       logoutBtn.addEventListener("click", logout);
       backToModeBtn.addEventListener("click", goBackToModeSelection);
 
       fixedModeBtn.addEventListener("click", () => setupMode("fixed"));
       customModeBtn.addEventListener("click", () => setupMode("custom"));
-      fixedModeBtn.addEventListener("click", () => setupMode("fixed"));
-      customModeBtn.addEventListener("click", () => setupMode("custom"));
       generateSliceFieldsBtn.addEventListener(
         "click",
-        generateSliceInputFields
+        generateSliceInputFields,
       );
       settingsBtn.addEventListener("click", startExperiment);
       resetBtn.addEventListener("click", resetExperimentData);
       buttonContainer.addEventListener("click", handleSpinAction);
       myExperimentTab.addEventListener("click", () =>
-        switchTab("my-experiment")
+        switchTab("my-experiment"),
       );
       allResultsTab.addEventListener("click", () => switchTab("all-results"));
       addGroupBtn.addEventListener("click", addGroupManually);
       deleteSelectedBtn.addEventListener("click", deleteSelectedRows);
       downloadAllBtn.addEventListener("click", downloadAllResultsCSV);
 
-      // Dynamic update on checkbox change
-      resultsTable.addEventListener("change", (event) => {
+      // Event delegation for dynamically generated checkboxes in the tables
+      dynamicTablesContainer.addEventListener("change", (event) => {
         if (event.target.classList.contains("group-checkbox")) {
           combineSelectedResults();
         }
       });
 
-      // set up mode
       function setupMode(mode) {
         currentMode = mode;
         modeSelectionDiv.style.display = "none";
         mainContent.style.display = "block";
-        numSlicesInput.max = ACCESSIBLE_COLOR_PALETTE.length; // Set max slices based on palette size
+        numSlicesInput.max = ACCESSIBLE_COLOR_PALETTE.length;
 
         if (mode === "fixed") {
-          // fixed mode
           customSpinnerSetupDiv.style.display = "none";
           document.getElementById("manual-entry-info").textContent =
             "Manually add data for the Orange, Blue, Green, Yellow spinner.";
           settingsHeader.textContent = "Step 2: Settings";
           settingsBtn.textContent = "Start Experiment";
         } else {
-          // custom mode
           customSpinnerSetupDiv.style.display = "block";
           document.getElementById("manual-entry-info").textContent =
             'Define your spinner in "My Experiment" to enable manual entry.';
@@ -1306,24 +1186,19 @@
         } else {
           allResultsTab.classList.add("active");
           allResultsView.classList.add("active");
-
           const combinedPlaceholder = document.getElementById(
-            "combined-placeholder"
+            "combined-placeholder",
           );
           const combinedContent = document.getElementById("combined-content");
           if (combinedPlaceholder) combinedPlaceholder.style.display = "block";
           if (combinedContent) combinedContent.style.display = "none";
-
           fetchAllResults();
         }
         saveExperimentState();
       }
 
       function startExperiment() {
-        // GroupID is already set from the welcome screen
-        const inputId = currentGroupId;
         const inputMaxSpins = maxSpinsInput.value.trim();
-
         if (
           !inputMaxSpins ||
           isNaN(parseInt(inputMaxSpins)) ||
@@ -1332,8 +1207,6 @@
           alert("Please enter a valid Total Spins count.");
           return;
         }
-
-        // Set the value of the live input to the initial setting
         liveMaxSpinsInput.value = parseInt(inputMaxSpins);
 
         let experimentReady = false;
@@ -1352,280 +1225,185 @@
           buttonContainer.classList.add("active");
 
           generateManualEntryFields(chartColors);
-
           showRealTimeResults();
-
           saveExperimentState();
-
-          settingsBtn.disabled = true; //Disable button after start
+          settingsBtn.disabled = true;
         }
       }
+
       function buildFixedSpinner() {
         clearSpinnerUI();
-        // Use the standard fixed colors, mapping to the new palette for consistency
         addSliceToUI(
           "Orange",
-          ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Orange").hex
+          ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Orange").hex,
         );
         addSliceToUI(
           "Blue",
-          ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Blue").hex
+          ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Blue").hex,
         );
         addSliceToUI(
           "Green",
-          ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Green").hex
+          ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Green").hex,
         );
         addSliceToUI(
           "Yellow",
-          ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Yellow").hex
+          ACCESSIBLE_COLOR_PALETTE.find((c) => c.name === "Yellow").hex,
         );
-
-        // **Update the results table header to match**
-        updateResultsTableHeader(Object.keys(chartColors));
       }
+
       async function fetchAllResults() {
         if (!currentClassCode) return;
 
-        // We still need the local signature to merge data, but we won't block if it's missing.
-        const localColorKeys = Object.keys(chartColors);
-        const currentSignature = localColorKeys.sort().join(",");
-
         try {
-          //Fetch data, regardless of local state
           const response = await fetch(
-            `/api/results?classroom_code=${currentClassCode}`
+            `/api/results?classroom_code=${currentClassCode}`,
           );
-          if (!response.ok) {
+          if (!response.ok)
             throw new Error(`HTTP error! status: ${response.status}`);
-          }
           const data = await response.json();
 
-          const tableBody = document.querySelector("#results-table tbody");
-          const tableContainer = document.querySelector(".table-container"); // Get the container
+          dynamicTablesContainer.innerHTML = "";
+          allResultsData = {}; // Clear global storage
 
-          // Clear any existing "info" message from a previous load
-          const oldInfo = document.getElementById("all-results-info");
-          if (oldInfo) oldInfo.remove();
-
-          //Handle case where there are no results for this class at all
           if (!data.experiments || data.experiments.length === 0) {
-            tableBody.innerHTML =
-              '<tr><td colspan="100%">No students have recorded results yet.</td></tr>';
-
-            // **Use the local signature if it exists, otherwise clear**
-            if (currentSignature) {
-              updateResultsTableHeader(localColorKeys);
-            } else {
-              updateResultsTableHeader([]); // Clear header if no local signature
-            }
-
-            allResultsData = {}; // Clear data
-
-            // Keep manual entry disabled if no local spinner is defined
-            if (!currentSignature) {
-              document.getElementById("dynamic-manual-inputs").innerHTML = "";
-              document.getElementById("add-group-btn").disabled = true;
-              document.getElementById("manual-entry-info").textContent =
-                'Define your spinner in "My Experiment" to enable manual entry.';
-            }
+            dynamicTablesContainer.innerHTML =
+              '<p class="no-results">No students have recorded results yet.</p>';
+            document.getElementById("dynamic-manual-inputs").innerHTML = "";
+            document.getElementById("add-group-btn").disabled = true;
             return;
           }
 
-          //Decide which experiment group to display
-          let experimentToShow;
-          let infoMessage = "";
-
-          if (currentSignature) {
-            // User has an active experiment. Try to find a match.
-            experimentToShow = data.experiments.find(
-              (exp) => exp.signature === currentSignature
-            );
-            if (!experimentToShow) {
-              // Match not found. Default to the first experiment in the list.
-              experimentToShow = data.experiments[0];
-              infoMessage = `Note: Your current experiment type has no history. Showing results for: ${experimentToShow.signature}`;
-            } else {
-              // Match found.
-              infoMessage = `Showing results for your current experiment type: ${experimentToShow.signature}`;
-            }
-          } else {
-            // User has not started an experiment. Default to the first one.
-            experimentToShow = data.experiments[0];
-            infoMessage = `Showing results for: ${experimentToShow.signature}. (Start your own experiment to see other types).`;
-          }
-
-          // Add an info message above the table to tell the user what they're seeing
-          const infoEl = document.createElement("p");
-          infoEl.id = "all-results-info";
-          infoEl.style.color = "#555";
-          infoEl.style.fontSize = "0.9em";
-          infoEl.style.textAlign = "left";
-          infoEl.style.marginBottom = "5px";
-          infoEl.textContent = infoMessage;
-          tableContainer.parentNode.insertBefore(infoEl, tableContainer);
-
-          //Prepare the data for the table
-          const { signature, colors, results } = experimentToShow;
-
-          const tempColorNameMap = {};
-          colors.forEach((colorKey) => {
-            // This assumes the key 'blue' should be displayed as 'Blue'
-            tempColorNameMap[colorKey] =
-              colorKey.charAt(0).toUpperCase() + colorKey.slice(1);
-          });
-
-          // Temporarily set the global map for the header function
-          const originalColorMap = colorDisplayNameMap;
-
-          // **If we are showing the user's *own* experiment, use their local map**
-          if (signature === currentSignature) {
-            // Use the local map, which has the correct capitalization/names
-            updateResultsTableHeader(localColorKeys);
-          } else {
-            // We are showing a *different* experiment, use the temporary map
-            colorDisplayNameMap = tempColorNameMap;
-            updateResultsTableHeader(colors);
-          }
-
-          if (!currentSignature) {
-            const tempChartColors = {};
-            const fixedColors = ACCESSIBLE_COLOR_PALETTE.map((c) => c);
-            colors.forEach((colorKey, index) => {
-              // Try to match by name
-              const found = fixedColors.find(
-                (c) => c.name.toLowerCase() === colorKey
-              );
-              if (found) {
-                tempChartColors[colorKey] = found.hex;
-              } else {
-                // Fallback to sequential colors
-                tempChartColors[colorKey] =
-                  fixedColors[index % fixedColors.length].hex;
-              }
-            });
-            // Set global chartColors *only if it's empty*
-            chartColors = tempChartColors;
-          }
-
-          //Merge local data IF it matches the displayed experiment
-          let resultsToDisplay = { ...results };
-          if (currentGroupId && signature === currentSignature) {
-            resultsToDisplay[currentGroupId] = counts;
-          }
-
-          //Fill the table
-          allResultsData = resultsToDisplay; // This global is now ready for combine/delete
-          tableBody.innerHTML = ""; // Clear old rows
-
-          let ownGroupFound = false;
-
-          for (const groupId in allResultsData) {
-            appendRowToTable(groupId, allResultsData[groupId], colors);
-            if (currentGroupId && groupId === currentGroupId) {
-              ownGroupFound = true;
-            }
-          }
-
-          // Enable manual entry if a local spinner is defined
+          // Enable manual entry ONLY if the user has an active configuration
+          const localColorKeys = Object.keys(chartColors);
+          const currentSignature = localColorKeys.sort().join(",");
           if (currentSignature) {
             generateManualEntryFields(chartColors);
           } else {
-            // Make sure manual entry is disabled
             document.getElementById("dynamic-manual-inputs").innerHTML = "";
             document.getElementById("add-group-btn").disabled = true;
             document.getElementById("manual-entry-info").textContent =
               'Define your spinner in "My Experiment" to enable manual entry.';
           }
 
-          //Auto-select current group and update combined chart
-          if (ownGroupFound) {
-            const ownGroupCheckbox = document.querySelector(
-              `.group-checkbox[data-group-id="${currentGroupId}"]`
-            );
-            if (ownGroupCheckbox) {
-              ownGroupCheckbox.checked = true;
+          data.experiments.forEach((exp) => {
+            const { signature, colors, results } = exp;
+
+            // Merge local pending unsaved data if it matches this table
+            let resultsToDisplay = { ...results };
+            if (currentGroupId && signature === currentSignature) {
+              const hasSpins = Object.values(counts).some((v) => v > 0);
+              if (hasSpins) resultsToDisplay[currentGroupId] = counts;
             }
+
+            if (Object.keys(resultsToDisplay).length === 0) return;
+
+            // Render distinct table block for each configuration
+            const tableWrapper = document.createElement("div");
+            tableWrapper.className = "table-wrapper";
+
+            const title = document.createElement("h3");
+            title.className = "table-title";
+            title.textContent = `Spinner Setup: ${colors.map(getOriginalDisplayName).join(", ")}`;
+            tableWrapper.appendChild(title);
+
+            const table = document.createElement("table");
+            table.className = "results-table";
+            table.dataset.signature = signature;
+
+            const thead = document.createElement("thead");
+            const trHead = document.createElement("tr");
+            trHead.innerHTML =
+              "<th>Select</th><th>Student ID</th><th>Total Spins</th>";
+            colors.forEach((color) => {
+              const th = document.createElement("th");
+              th.textContent = getOriginalDisplayName(color);
+              trHead.appendChild(th);
+            });
+            thead.appendChild(trHead);
+            table.appendChild(thead);
+
+            const tbody = document.createElement("tbody");
+            for (const groupId in resultsToDisplay) {
+              allResultsData[groupId] = resultsToDisplay[groupId]; // Save to global flat map for downloads
+
+              const tr = document.createElement("tr");
+
+              const tdCheck = document.createElement("td");
+              const checkbox = document.createElement("input");
+              checkbox.type = "checkbox";
+              checkbox.className = "group-checkbox";
+              checkbox.dataset.groupId = groupId;
+              checkbox.dataset.signature = signature;
+              tdCheck.appendChild(checkbox);
+              tr.appendChild(tdCheck);
+
+              const tdId = document.createElement("td");
+              tdId.textContent = groupId;
+              tr.appendChild(tdId);
+
+              const tdTotal = document.createElement("td");
+              const total = Object.values(resultsToDisplay[groupId]).reduce(
+                (sum, count) => sum + count,
+                0,
+              );
+              tdTotal.textContent = total;
+              tr.appendChild(tdTotal);
+
+              colors.forEach((color) => {
+                const tdColor = document.createElement("td");
+                tdColor.textContent = resultsToDisplay[groupId][color] || 0;
+                tr.appendChild(tdColor);
+              });
+
+              tbody.appendChild(tr);
+            }
+            table.appendChild(tbody);
+            tableWrapper.appendChild(table);
+            dynamicTablesContainer.appendChild(tableWrapper);
+          });
+
+          // Auto-select current group if it exists in the tables
+          if (currentGroupId) {
+            const ownGroupCheckbox = document.querySelector(
+              `.group-checkbox[data-group-id="${currentGroupId}"]`,
+            );
+            if (ownGroupCheckbox) ownGroupCheckbox.checked = true;
           }
           combineSelectedResults();
-
-          // Restore the original color map in case the user goes back to "My Experiment"
-          colorDisplayNameMap = originalColorMap;
-          // If we didn't have an original map, clear chartColors so it can be rebuilt
-          if (!currentSignature) {
-            chartColors = {};
-          }
         } catch (error) {
           console.error("Failed to fetch all results:", error);
-          document.querySelector(
-            "#results-table tbody"
-          ).innerHTML = `<tr><td colspan="100%">Error loading results.</td></tr>`;
+          dynamicTablesContainer.innerHTML = `<p>Error loading results.</p>`;
         }
       }
 
-      function updateResultsTableHeader(colors) {
-        const headerRow = document.querySelector("#results-table thead tr");
-        headerRow.innerHTML =
-          "<th>Select</th><th>Student ID</th><th>Total Spins</th>";
-        colors.forEach((color) => {
-          const th = document.createElement("th");
-          // Use the display name from the map if available, otherwise just capitalize the key
-          th.textContent =
-            colorDisplayNameMap[color] ||
-            color.charAt(0).toUpperCase() + color.slice(1);
-          headerRow.appendChild(th);
-        });
-      }
-
-      // Append data to table
-      function appendRowToTable(groupId, results, colorOrder) {
-        const tableBody = document.querySelector("#results-table tbody");
-        const newRow = tableBody.insertRow();
-
-        const cellCheckbox = newRow.insertCell();
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.className = "group-checkbox";
-        checkbox.dataset.groupId = groupId;
-        cellCheckbox.appendChild(checkbox);
-
-        newRow.insertCell().textContent = groupId;
-        newRow.insertCell().textContent = Object.values(results).reduce(
-          (sum, count) => sum + count,
-          0
-        );
-
-        colorOrder.forEach((color) => {
-          newRow.insertCell().textContent = results[color] || 0;
-        });
-      }
-
-      // download CSV
       function downloadAllResultsCSV() {
-        if (Object.keys(allResultsData).length === 0) {
-          alert("There is no data to download.");
-          return;
-        }
+        if (Object.keys(allResultsData).length === 0)
+          return alert("There is no data to download.");
 
-        // Determine headers from the first data entry
-        const firstGroupId = Object.keys(allResultsData)[0];
-        const colorOrder = Object.keys(allResultsData[firstGroupId]).sort();
+        // Gather all unique colors across any table for the combined wide CSV
+        const allColorsSet = new Set();
+        for (const groupId in allResultsData) {
+          Object.keys(allResultsData[groupId]).forEach((color) =>
+            allColorsSet.add(color),
+          );
+        }
+        const colorOrder = Array.from(allColorsSet).sort();
+
         const headers = [
           "Student ID",
           "Total Spins",
           ...colorOrder.map(getOriginalDisplayName),
         ];
+        const csvRows = [headers.join(",")];
 
-        const csvRows = [headers.join(",")]; // Start with the header row
-
-        // Add a row for each group
         for (const groupId in allResultsData) {
           const results = allResultsData[groupId];
           const total = Object.values(results).reduce(
             (sum, count) => sum + count,
-            0
+            0,
           );
           const rowData = [
-            `"${groupId.replace(/"/g, '""')}"`, // Handle quotes in group names
+            `"${groupId.replace(/"/g, '""')}"`,
             total,
             ...colorOrder.map((color) => results[color] || 0),
           ];
@@ -1642,71 +1420,51 @@
         document.body.removeChild(link);
       }
 
-      //delete row
       async function deleteSelectedRows() {
         const selectedCheckboxes = document.querySelectorAll(
-          "#results-table .group-checkbox:checked"
+          ".group-checkbox:checked",
         );
-        if (selectedCheckboxes.length === 0) {
-          alert("Please select at least one student to delete.");
-          return;
-        }
+        if (selectedCheckboxes.length === 0)
+          return alert("Please select at least one student to delete.");
 
         if (
           !confirm(
-            `Are you sure you want to delete data for ${selectedCheckboxes.length} student(s)? This cannot be undone.`
+            `Are you sure you want to delete data for ${selectedCheckboxes.length} student(s)? This cannot be undone.`,
           )
-        ) {
+        )
           return;
-        }
 
         const deletionPromises = [];
-
         selectedCheckboxes.forEach((checkbox) => {
           const groupId = checkbox.dataset.groupId;
-          const rowElement = checkbox.closest("tr");
-
           const promise = fetch("/api/clear_spins", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            // UPDATED to send student_id instead of group_id
             body: JSON.stringify({
               classroom_code: currentClassCode,
               student_id: groupId,
             }),
           })
-            .then(() => {
-              // On successful deletion from server, update client
-              delete allResultsData[groupId];
-              rowElement.remove();
-            })
-            .catch((error) => {
-              console.error(
-                `Failed to delete student ${groupId} on server:`,
-                error
-              );
-            });
+            .then(() => delete allResultsData[groupId])
+            .catch((error) =>
+              console.error(`Failed to delete student ${groupId}:`, error),
+            );
           deletionPromises.push(promise);
         });
 
         await Promise.all(deletionPromises);
         alert(`${selectedCheckboxes.length} student(s) have been deleted.`);
-        combineSelectedResults(); // Update the chart after deletion
+        await fetchAllResults(); // Refresh tables after deletion
       }
 
       function getOriginalDisplayName(key) {
-        // Local map (for custom names); Default capitalization.
-        if (colorDisplayNameMap[key]) {
-          return colorDisplayNameMap[key];
-        }
+        if (colorDisplayNameMap[key]) return colorDisplayNameMap[key];
         return key.charAt(0).toUpperCase() + key.slice(1);
       }
 
       function generateManualEntryFields(colors) {
         const container = document.getElementById("dynamic-manual-inputs");
         container.innerHTML = "";
-
-        //Sort keys alphabetically to match the Table Headers
         const sortedKeys = Object.keys(colors).sort();
 
         for (const colorKey of sortedKeys) {
@@ -1728,73 +1486,98 @@
           container.appendChild(fieldGroup);
         }
         document.getElementById("manual-entry-info").textContent =
-          "Add data for another student using the same spinner configuration.";
+          "Add data for another student using your current spinner configuration.";
         document.getElementById("add-group-btn").disabled = false;
       }
 
-      function addGroupManually() {
+      async function addGroupManually() {
         const groupNameInput = document.getElementById("manual-group-name");
         const groupName = groupNameInput.value.trim();
-        if (!groupName) {
-          alert("Please enter a Student ID.");
-          return;
-        }
-        if (allResultsData[groupName]) {
-          alert("A student with this ID already exists.");
-          return;
-        }
+        if (!groupName) return alert("Please enter a Student ID.");
+        if (allResultsData[groupName])
+          return alert("A student with this ID already exists.");
 
         const manualInputs = document.querySelectorAll(".manual-color-input");
-        if (manualInputs.length === 0) {
-          alert(
-            "Spinner not defined yet. Please start your own experiment first."
+        if (manualInputs.length === 0)
+          return alert(
+            "Spinner not defined yet. Please start your own experiment first.",
           );
-          return;
-        }
+
         const results = {};
+        let totalAddedSpins = 0;
+
         manualInputs.forEach((input) => {
           const colorKey = input.dataset.colorKey;
-          // Using Number() a robust way to ensure store a number, not a string
-          results[colorKey] = Number(input.value) || 0;
-          input.value = "0";
+          const count = Number(input.value) || 0;
+          results[colorKey] = count;
+          totalAddedSpins += count;
         });
 
-        // Get the color order from the current chartColors keys
-        const colorOrder = Object.keys(chartColors);
+        if (totalAddedSpins === 0)
+          return alert("Please enter at least one spin for one color.");
 
-        allResultsData[groupName] = results;
-        appendRowToTable(groupName, results, colorOrder); // Pass the correct order!
-        groupNameInput.value = "";
+        addGroupBtn.disabled = true;
+        addGroupBtn.textContent = "Saving...";
+
+        try {
+          const response = await fetch("/api/add_manual_group", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              classroom_code: currentClassCode,
+              group_name: groupName,
+              results: results,
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.message || "Server error");
+
+          await fetchAllResults(); // Refresh table entirely
+          groupNameInput.value = "";
+          manualInputs.forEach((input) => (input.value = "0"));
+        } catch (error) {
+          alert(`Error: ${error.message}`);
+        } finally {
+          addGroupBtn.disabled = false;
+          addGroupBtn.textContent = "Add Student";
+        }
       }
 
       function combineSelectedResults() {
         const selectedCheckboxes = document.querySelectorAll(
-          "#results-table .group-checkbox:checked"
+          ".group-checkbox:checked",
         );
-
         const combinedPlaceholder = document.getElementById(
-          "combined-placeholder"
+          "combined-placeholder",
         );
         const combinedContent = document.getElementById("combined-content");
 
         if (selectedCheckboxes.length === 0) {
-          // If no groups are selected, show the placeholder
           combinedPlaceholder.style.display = "block";
           combinedContent.style.display = "none";
           return;
         }
 
-        // Combine and validate selected groups
-        const firstGroupId = selectedCheckboxes[0].dataset.groupId;
-        const referenceSignature = Object.keys(
-          allResultsData[firstGroupId] || {}
-        )
-          .sort()
-          .join(",");
+        const referenceSignature = selectedCheckboxes[0].dataset.signature;
+        const colorOrder = referenceSignature.split(",");
 
-        const colorOrder = Object.keys(chartColors);
+        // Assign colors for the combined chart dynamically based on the selected table's signature
+        const dynamicChartColors = {};
+        colorOrder.forEach((color, index) => {
+          if (chartColors[color]) {
+            dynamicChartColors[color] = chartColors[color];
+          } else {
+            const found = ACCESSIBLE_COLOR_PALETTE.find(
+              (c) => c.name.toLowerCase() === color,
+            );
+            dynamicChartColors[color] = found
+              ? found.hex
+              : ACCESSIBLE_COLOR_PALETTE[
+                  index % ACCESSIBLE_COLOR_PALETTE.length
+                ].hex;
+          }
+        });
 
-        // Initialize combinedCounts with all colors set to 0, in the correct order.
         const combinedCounts = {};
         colorOrder.forEach((color) => {
           combinedCounts[color] = 0;
@@ -1805,13 +1588,12 @@
 
         selectedCheckboxes.forEach((checkbox) => {
           const groupId = checkbox.dataset.groupId;
-          const currentSignature = Object.keys(allResultsData[groupId] || {})
-            .sort()
-            .join(",");
+          const currentSignature = checkbox.dataset.signature;
 
+          // Make sure users aren't crossing tables
           if (referenceSignature !== currentSignature) {
             alert(
-              "Incompatible students selected. You can only combine results that have the exact same set of colors. Unchecking the last selected."
+              "Incompatible students selected. You can only combine results from the same spinner configuration. Unchecking the last selected.",
             );
             checkbox.checked = false;
             incompatibleFound = true;
@@ -1821,21 +1603,15 @@
           selectedGroupIds.push(groupId);
           const groupData = allResultsData[groupId];
           if (groupData) {
-            // Sum values from the selected group
             for (const color in groupData) {
-              if (combinedCounts.hasOwnProperty(color)) {
+              if (combinedCounts.hasOwnProperty(color))
                 combinedCounts[color] += groupData[color] || 0;
-              }
             }
           }
         });
 
-        if (incompatibleFound) {
-          // Ensures the chart only shows the valid selection
-          return combineSelectedResults();
-        }
+        if (incompatibleFound) return combineSelectedResults();
 
-        // selectedGroupIds contains all valid groups
         if (selectedGroupIds.length === 0) {
           combinedPlaceholder.style.display = "block";
           combinedContent.style.display = "none";
@@ -1844,63 +1620,59 @@
 
         const totalCombinedSpins = Object.values(combinedCounts).reduce(
           (a, b) => a + b,
-          0
+          0,
         );
         const summaryDiv = document.getElementById("combined-summary-text");
         let summaryHTML = "<h4>Summary</h4>";
 
-        // Loop using the guaranteed colorOrder to build the summary text.
         colorOrder.forEach((color) => {
           const count = combinedCounts[color];
           const percentage =
             totalCombinedSpins > 0 ? (count / totalCombinedSpins) * 100 : 0;
-          const hexColor = chartColors[color] || "#cccccc";
-          summaryHTML += `<p><strong style="color:${hexColor}">${getOriginalDisplayName(
-            color
-          )}:</strong> ${count} spins (${percentage.toFixed(1)}%)</p>`;
+          const hexColor = dynamicChartColors[color];
+          summaryHTML += `<p><strong style="color:${hexColor}">${getOriginalDisplayName(color)}:</strong> ${count} spins (${percentage.toFixed(1)}%)</p>`;
         });
 
         summaryDiv.innerHTML = summaryHTML;
-        document.getElementById(
-          "combined-info"
-        ).textContent = `Combined results from Students: ${selectedGroupIds.join(
-          ", "
-        )} (${totalCombinedSpins} total spins)`;
+        document.getElementById("combined-info").textContent =
+          `Combined results from Students: ${selectedGroupIds.join(", ")} (${totalCombinedSpins} total spins)`;
 
         combinedPlaceholder.style.display = "none";
         combinedContent.style.display = "block";
 
-        // Create the chart using the guaranteed colorOrder for labels and data.
         const chartLabels = colorOrder;
         const chartData = colorOrder.map((color) => combinedCounts[color]);
-        createPieChart("combinedChart", chartLabels, chartData);
+
+        // Pass the dynamically resolved colors to the chart builder
+        createPieChart(
+          "combinedChart",
+          chartLabels,
+          chartData,
+          dynamicChartColors,
+        );
       }
 
       function generateSliceInputFields() {
         const numSlices = parseInt(numSlicesInput.value);
         sliceDefinitionsContainer.innerHTML = "";
 
-        if (numSlices < 2 || numSlices > ACCESSIBLE_COLOR_PALETTE.length) {
-          alert(
-            `Please enter a number between 2 and ${ACCESSIBLE_COLOR_PALETTE.length}.`
+        if (numSlices < 2 || numSlices > ACCESSIBLE_COLOR_PALETTE.length)
+          return alert(
+            `Please enter a number between 2 and ${ACCESSIBLE_COLOR_PALETTE.length}.`,
           );
-          return;
-        }
 
-        // Assign colors from the palette sequentially
         for (let i = 0; i < numSlices; i++) {
           const sliceDiv = document.createElement("div");
           sliceDiv.className = "slice-definition";
           const assignedColor = ACCESSIBLE_COLOR_PALETTE[i].hex;
           const defaultName = ACCESSIBLE_COLOR_PALETTE[i].name;
 
-          //Changed value="${defaultName}" to value="" so the field starts empty
           sliceDiv.innerHTML = `
-        <div style="background-color: ${assignedColor}; width: 40px; height: 40px; border-radius: 5px; border: 1px solid #999;" title="Color: ${defaultName}"></div>
-        <label>Slice Name:</label>
-        <input type="text" class="slice-name-input" placeholder="e.g., ${defaultName}" value="">
-        <input type="hidden" class="slice-color-value" value="${assignedColor}">
-      `;
+            <div style="background-color: ${assignedColor}; width: 40px; height: 40px; border-radius: 5px; border: 1px solid #999;" title="Color: ${defaultName}"></div>
+            <label>Slice Name:</label>
+            <input type="text" class="slice-name-input" placeholder="e.g., ${defaultName}" value="">
+            <input type="hidden" class="slice-color-value" value="${assignedColor}">
+          `;
           sliceDefinitionsContainer.appendChild(sliceDiv);
         }
       }
@@ -1909,7 +1681,7 @@
         const sliceInputs = document.querySelectorAll(".slice-definition");
         if (sliceInputs.length === 0) {
           alert(
-            "Please design your spinner slices first by clicking 'Set Slices'."
+            "Please design your spinner slices first by clicking 'Set Slices'.",
           );
           return false;
         }
@@ -1920,7 +1692,6 @@
         for (const slice of sliceInputs) {
           const nameInput = slice.querySelector(".slice-name-input");
           const colorValueInput = slice.querySelector(".slice-color-value");
-
           const rawName = nameInput.value.trim();
           const colorValue = colorValueInput.value;
 
@@ -1931,10 +1702,9 @@
           }
 
           const keyName = rawName.toLowerCase();
-
           if (names.has(keyName)) {
             alert(
-              `Duplicate slice name found: "${rawName}". Please use unique names.`
+              `Duplicate slice name found: "${rawName}". Please use unique names.`,
             );
             clearSpinnerUI();
             return false;
@@ -1943,9 +1713,6 @@
           names.add(keyName);
           addSliceToUI(rawName, colorValue);
         }
-
-        // **NEW: Update the results table header to match**
-        updateResultsTableHeader(Object.keys(chartColors));
         return true;
       }
 
@@ -1953,7 +1720,6 @@
         const nameKey = displayName.toLowerCase();
         counts[nameKey] = 0;
         chartColors[nameKey] = colorValue;
-        // Store the original display name
         colorDisplayNameMap[nameKey] = displayName;
 
         const newControl = document.createElement("div");
@@ -1966,91 +1732,70 @@
 
         const newTallyWrapper = document.createElement("div");
         newTallyWrapper.className = "tally-column-wrapper";
-        //Removed TALLY COUNT LABEL
-        newTallyWrapper.innerHTML = `<div class="tally-column" id="${nameKey.replace(
-          /\s/g,
-          "-"
-        )}-tally-column"></div><div class="tally-label">${displayName}</div>`;
+        newTallyWrapper.innerHTML = `<div class="tally-column" id="${nameKey.replace(/\s/g, "-")}-tally-column"></div><div class="tally-label">${displayName}</div>`;
         tallyChartContainer.appendChild(newTallyWrapper);
       }
 
       function clearSpinnerUI() {
         counts = {};
         chartColors = {};
-        colorDisplayNameMap = {}; // Reset the map
+        colorDisplayNameMap = {};
         buttonContainer.innerHTML = "";
         tallyChartContainer.innerHTML = "";
-        updateResultsTableHeader([]);
       }
 
       function resetExperimentData() {
         if (
           !confirm(
-            `Are you sure? This will clear all ${totalSpins} recorded spins for "${currentGroupId}" and reset the count to 0.`
+            `Are you sure? This will clear all ${totalSpins} recorded spins for "${currentGroupId}" and reset the count to 0.`,
           )
         )
           return;
 
-        //Clear spins on the server
         clearSpinsOnServer(currentGroupId);
-
-        //Reset local counts
         totalSpins = 0;
-        for (const key in counts) {
-          counts[key] = 0;
-        }
+        for (const key in counts) counts[key] = 0;
 
-        //Update the UI
-        updateTally(); //Updates the counter and clears the tally columns
-        showRealTimeResults(); // See totalSpins is 0 and show the placeholder
-
-        //Save the new empty state
+        updateTally();
+        showRealTimeResults();
         saveExperimentState();
       }
 
       async function clearSpinsOnServer(groupIdToClear) {
-        // Just send the Student ID (groupIdToClear)
         if (!groupIdToClear) return;
         try {
           await fetch("/api/clear_spins", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            // UPDATED: Use student_id
             body: JSON.stringify({
               classroom_code: currentClassCode,
               student_id: groupIdToClear,
             }),
           });
         } catch (error) {
-          console.error(
-            `Failed to clear spins on server for group ${groupIdToClear}:`,
-            error
-          );
+          console.error(error);
         }
       }
 
       function handleSpinAction(event) {
         const target = event.target;
         if (target.matches(".op-btn")) {
-          const color = target.dataset.color;
-          updateCount(color, target.classList.contains("plus-btn"));
+          updateCount(
+            target.dataset.color,
+            target.classList.contains("plus-btn"),
+          );
         }
       }
 
       function updateCount(color, isPlus) {
         if (!currentGroupId) return;
-
-        // Get the current target number of spins from the live input field
         const currentMaxSpins = parseInt(liveMaxSpinsInput.value) || 0;
 
         if (isPlus) {
-          if (currentMaxSpins > 0 && totalSpins >= currentMaxSpins) {
-            // Check against the live value
-            alert(
-              `You have already reached the target of ${currentMaxSpins} spins.`
+          if (currentMaxSpins > 0 && totalSpins >= currentMaxSpins)
+            return alert(
+              `You have already reached the target of ${currentMaxSpins} spins.`,
             );
-            return;
-          }
           totalSpins++;
           counts[color]++;
           sendSpinUpdate(currentGroupId, color, "add");
@@ -2061,40 +1806,27 @@
             sendSpinUpdate(currentGroupId, color, "remove");
           }
         }
-
         updateTally();
-
-        // Call showRealTimeResults to update chart on every change of tally ***
         showRealTimeResults();
-
-        // Check for completion after the count update
-        if (currentMaxSpins > 0 && totalSpins >= currentMaxSpins) {
-        }
         saveExperimentState();
       }
 
       function updateTally() {
-        // Read the live max spins value every time the tally updates
         const currentMaxSpins = parseInt(liveMaxSpinsInput.value) || 0;
-
-        if (currentMaxSpins > 0) {
-          spinCounter.textContent = `Total Spins: ${totalSpins} / ${currentMaxSpins}`;
-        } else {
-          spinCounter.textContent = `Total Spins: ${totalSpins}`;
-        }
-
+        spinCounter.textContent =
+          currentMaxSpins > 0
+            ? `Total Spins: ${totalSpins} / ${currentMaxSpins}`
+            : `Total Spins: ${totalSpins}`;
         updateTallyChart();
       }
 
-      // Dynamic Tally Chart Update
       function updateTallyChart() {
         const firstColumn = tallyChartContainer.querySelector(".tally-column");
         if (!firstColumn) return;
 
-        // This is the height of the column itself, which accounts for the label below it.
         const containerHeight = firstColumn.clientHeight;
-        const maxIconSize = 30; // Max size of an icon
-        const minIconSize = 2; // Min size
+        const maxIconSize = 30,
+          minIconSize = 2;
 
         Object.keys(counts).forEach((color) => {
           const safeId = color.replace(/\s/g, "-");
@@ -2105,35 +1837,31 @@
           column.innerHTML = "";
           if (count === 0) return;
 
-          // Calculate the total height available per item (icon + margin)
           let itemTotalHeight = containerHeight / count;
-
-          let finalSize;
-          let finalMargin;
+          let finalSize, finalMargin;
 
           if (itemTotalHeight < minIconSize) {
-            //Make items (too many) small and barely spaced.
-            finalSize = Math.max(1, itemTotalHeight * 0.9); // 1px min
-            finalMargin = Math.max(0.1, itemTotalHeight - finalSize); // 0.1px min
+            finalSize = Math.max(1, itemTotalHeight * 0.9);
+            finalMargin = Math.max(0.1, itemTotalHeight - finalSize);
           } else {
-            finalMargin = Math.max(1, itemTotalHeight * 0.2); // 20% margin, 1px min
+            finalMargin = Math.max(1, itemTotalHeight * 0.2);
             finalSize = Math.min(maxIconSize, itemTotalHeight - finalMargin);
           }
 
           for (let i = 0; i < count; i++) {
             const svg = document.createElementNS(
               "http://www.w3.org/2000/svg",
-              "svg"
+              "svg",
             );
             svg.setAttribute("viewBox", "0 0 50 50");
             svg.style.width = `${finalSize}px`;
             svg.style.height = `${finalSize}px`;
             svg.style.marginBottom = `${finalMargin}px`;
-            svg.style.flexShrink = "0"; //To prevent shrinking
+            svg.style.flexShrink = "0";
 
             const path = document.createElementNS(
               "http://www.w3.org/2000/svg",
-              "path"
+              "path",
             );
             path.setAttribute("d", "M10 10 L40 40 M40 10 L10 40");
             path.setAttribute("stroke", chartColors[color] || "#000000");
@@ -2146,9 +1874,7 @@
         });
       }
 
-      //Real-time update of the chart and summary
       function showRealTimeResults() {
-        // Only show the results container if there is data
         if (totalSpins === 0) {
           chartPlaceholder.style.display = "flex";
           resultsContent.style.display = "none";
@@ -2158,47 +1884,34 @@
         chartPlaceholder.style.display = "none";
         resultsContent.style.display = "flex";
 
-        const currentMaxSpins = parseInt(liveMaxSpinsInput.value) || 0;
-
-        // Update the Summary Text
-        document.getElementById(
-          "final-results-summary"
-        ).textContent = `Distribution based on ${totalSpins} spins collected so far:`;
+        document.getElementById("final-results-summary").textContent =
+          `Distribution based on ${totalSpins} spins collected so far:`;
 
         let resultsHTML = "";
         for (const colorKey in counts) {
           const percentage =
             totalSpins > 0 ? (counts[colorKey] / totalSpins) * 100 : 0;
-          resultsHTML += `<b>${getOriginalDisplayName(colorKey)}:</b> ${
-            counts[colorKey]
-          } spins (${percentage.toFixed(1)}%)<br>`;
+          resultsHTML += `<b>${getOriginalDisplayName(colorKey)}:</b> ${counts[colorKey]} spins (${percentage.toFixed(1)}%)<br>`;
         }
         document.getElementById("my-results-text").innerHTML = resultsHTML;
 
-        // Update the Pie Chart
+        // Uses local chartColors automatically since 4th param is omitted
         createPieChart(
           "myResultsChart",
           Object.keys(counts),
-          Object.values(counts)
+          Object.values(counts),
         );
-      }
-
-      // Renamed and streamlined from showFinalResults to keep the old function name for target-hit clarity.
-      function showFinalResults() {
-        showRealTimeResults();
       }
 
       async function sendSpinUpdate(groupId, color, action) {
         if (!currentClassCode) return;
         try {
-          //Flask endpoint uses 'color' for the key, which is the lowercase name.
           await fetch("/update_spin", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            // UPDATED: Now sends 'student_id'
             body: JSON.stringify({
               student_id: groupId,
-              color: color, // The key (lowercase name)
+              color: color,
               action: action,
               classroom_code: currentClassCode,
             }),
@@ -2208,23 +1921,20 @@
         }
       }
 
-      function createPieChart(canvasId, labels, data) {
+      // Updated to optionally accept dynamicColors if we are charting combined external results
+      function createPieChart(canvasId, labels, data, customColorsMap = null) {
         const ctx = document.getElementById(canvasId).getContext("2d");
 
-        // Check if a chart instance already exists and destroy it
-        if (window[canvasId + "_chart"]) {
-          window[canvasId + "_chart"].destroy();
-        }
+        if (window[canvasId + "_chart"]) window[canvasId + "_chart"].destroy();
 
         const formattedLabels = labels.map((labelKey) =>
-          getOriginalDisplayName(labelKey)
+          getOriginalDisplayName(labelKey),
         );
-
-        // Check if there's any data before creating the chart
         const hasData = data.some((value) => value > 0);
-        if (!hasData) {
-          return;
-        }
+        if (!hasData) return;
+
+        // Uses dynamic colors mapped from the specific table, or falls back to the user's active chartColors
+        const colorsToUse = customColorsMap || chartColors;
 
         window[canvasId + "_chart"] = new Chart(ctx, {
           type: "pie",
@@ -2234,7 +1944,7 @@
               {
                 label: "Spin Results",
                 data: data,
-                backgroundColor: labels.map((l) => chartColors[l]),
+                backgroundColor: labels.map((l) => colorsToUse[l] || "#cccccc"),
                 borderColor: "black",
                 borderWidth: 2,
               },
@@ -2243,55 +1953,35 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            // High-res rendering for print
             devicePixelRatio: 4,
             plugins: {
-              // Legend is disabled
-              legend: {
-                display: false,
-              },
+              legend: { display: false },
               datalabels: {
-                // OUTSIDE LABELS:
                 anchor: "end",
                 align: "start",
                 offset: 10,
                 color: "#000",
-
-                // Show the Group Name (Slice Name) AND Rounded Percentage ONLY
                 formatter: (value, context) => {
                   const sliceName =
                     context.chart.data.labels[context.dataIndex];
-
-                  // Calculate Percentage
                   const dataset = context.chart.data.datasets[0];
                   const total = dataset.data.reduce((acc, val) => acc + val, 0);
-
-                  // Use Math.round() for whole numbers
                   const percentage =
                     total > 0 ? Math.round((value / total) * 100) : 0;
-
-                  // Line 1: Name
-                  // Line 2: Percentage% (No decimals)
                   return [sliceName, `${percentage}%`];
                 },
-
-                // FONT FUNCTION
                 font: function (context) {
                   const dataset =
                     context.chart.data.datasets[context.datasetIndex];
                   const totalValue = dataset.data.reduce(
                     (acc, val) => acc + val,
-                    0
+                    0,
                   );
-                  const currentValue = dataset.data[context.dataIndex];
-                  const slicePercentage = (currentValue / totalValue) * 100;
-
-                  // Use a smaller font size for slices under 15%
-                  const size = slicePercentage < 15 ? 11 : 14;
-
+                  const slicePercentage =
+                    (dataset.data[context.dataIndex] / totalValue) * 100;
                   return {
                     weight: "bold",
-                    size: size,
+                    size: slicePercentage < 15 ? 11 : 14,
                   };
                 },
               },
@@ -2303,27 +1993,18 @@
 
       function downloadChart(canvasId) {
         const canvas = document.getElementById(canvasId);
-        const chart = window[canvasId + "_chart"]; // Get the chart instance
+        const chart = window[canvasId + "_chart"];
 
-        if (!canvas || !chart) {
-          console.error("Canvas or Chart instance not found:", canvasId);
-          return;
-        }
+        if (!canvas || !chart) return;
 
-        // Get the data directly from the chart object
         const labels = chart.data.labels || [];
         const data = chart.data.datasets[0].data || [];
         const colors = chart.data.datasets[0].backgroundColor || [];
         const totalSpins = data.reduce((a, b) => a + b, 0);
 
-        if (totalSpins === 0) {
-          // Use a non-blocking message instead of alert
-          console.warn("There is no data to download.");
-          // You could show a custom modal/toast here
-          return;
-        }
+        if (totalSpins === 0)
+          return console.warn("There is no data to download.");
 
-        // Determine the group name (same as before)
         let groupName = "Unknown_Student";
         if (
           canvasId === "myResultsChart" &&
@@ -2333,74 +2014,58 @@
           groupName = currentGroupId;
         } else if (canvasId === "combinedChart") {
           const selectedCheckboxes = document.querySelectorAll(
-            "#results-table .group-checkbox:checked"
+            ".group-checkbox:checked",
           );
           if (selectedCheckboxes.length > 0) {
             const selectedGroupIds = Array.from(selectedCheckboxes).map(
-              (cb) => cb.dataset.groupId
+              (cb) => cb.dataset.groupId,
             );
             groupName = `Combined: ${selectedGroupIds.join(", ")}`;
-            if (groupName.length > 50) {
+            if (groupName.length > 50)
               groupName = `Combined: ${selectedCheckboxes.length} Students`;
-            }
           } else {
             groupName = "Combined Results (No Selection)";
           }
         }
-        const sanitizedGroupName = groupName
-          .replace(/[\\/:*?"<>|]/g, "_")
-          .replace(/, /g, "_");
-        const filename = `${sanitizedGroupName}_spinner_results.png`;
+        const filename = `${groupName.replace(/[\\/:*?"<>|]/g, "_").replace(/, /g, "_")}_spinner_results.png`;
 
-        const padding = 20;
-        const titleHeight = 40;
-        const totalSpinsHeight = 25;
-        const legendLineHeight = 22; // This is now the height of one *row*
-        const spaceBetweenLegendAndChart = 20;
-        const itemMarginRight = 15; // Space between legend items on the same row
-        const textOffset = 25; // Width of color box (18) + gap (7)
+        const padding = 20,
+          titleHeight = 40,
+          totalSpinsHeight = 25,
+          legendLineHeight = 22,
+          spaceBetweenLegendAndChart = 20,
+          itemMarginRight = 15,
+          textOffset = 25;
         const finalCanvasWidth = canvas.width + padding * 2;
-        const legendPaddingX = padding;
-        const legendMaxX = finalCanvasWidth - padding;
+        const legendPaddingX = padding,
+          legendMaxX = finalCanvasWidth - padding;
 
         const tempCanvas = document.createElement("canvas");
         const tempCtx = tempCanvas.getContext("2d");
         tempCtx.font = "16px Arial";
 
-        let currentX = legendPaddingX;
-        let rowCount = 1; // Start with 1 row
+        let currentX = legendPaddingX,
+          rowCount = 1;
 
         if (labels.length > 0) {
           for (let i = 0; i < labels.length; i++) {
-            const label = labels[i];
-            const count = data[i];
-            const percentage = ((count / totalSpins) * 100).toFixed(1);
-            const legendText = `${label}: ${count} spins (${percentage}%)`;
-
-            // Calculate the full width of this one legend item
+            const legendText = `${labels[i]}: ${data[i]} spins (${((data[i] / totalSpins) * 100).toFixed(1)}%)`;
             const itemWidth =
               textOffset +
               tempCtx.measureText(legendText).width +
               itemMarginRight;
-
             if (
               currentX > legendPaddingX &&
               currentX + itemWidth > legendMaxX
             ) {
-              // Doesn't fit, wrap to a new line
               rowCount++;
               currentX = legendPaddingX;
             }
-            // Add the item's width to the current X position
             currentX += itemWidth;
           }
-        } else {
-          rowCount = 0; // No labels, no legend height
-        }
+        } else rowCount = 0;
 
         const legendHeight = rowCount * legendLineHeight;
-
-        // This is the total height of all text *before* the chart
         const legendTotalHeight =
           titleHeight +
           totalSpinsHeight +
@@ -2409,74 +2074,49 @@
         const printCanvas = document.createElement("canvas");
         const ctx = printCanvas.getContext("2d");
 
-        // Set new canvas dimensions
         printCanvas.width = finalCanvasWidth;
         printCanvas.height = canvas.height + legendTotalHeight + padding * 2;
-
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, printCanvas.width, printCanvas.height);
-
-        ctx.fillStyle = "#333"; // Dark text color
+        ctx.fillStyle = "#333";
         ctx.textBaseline = "top";
 
-        let currentY = padding; // Start drawing at the top padding
-
-        // Draw the title
+        let currentY = padding;
         ctx.font = "bold 24px Arial";
         ctx.textAlign = "center";
         ctx.fillText(groupName, printCanvas.width / 2, currentY);
-        currentY += titleHeight; // Move down
-
-        //Draw Total Spins
+        currentY += titleHeight;
         ctx.font = "18px Arial";
-        ctx.textAlign = "center";
         ctx.fillText(
           `Total Spins: ${totalSpins}`,
           printCanvas.width / 2,
-          currentY
+          currentY,
         );
-        currentY += totalSpinsHeight; // Move down
+        currentY += totalSpinsHeight;
 
         if (labels.length > 0) {
           ctx.font = "16px Arial";
           ctx.textAlign = "left";
-          ctx.textBaseline = "middle"; // Vertically center text
-          currentX = legendPaddingX; // Reset X for actual drawing
-
-          // Adjust Y to be in the middle of the first line height
+          ctx.textBaseline = "middle";
+          currentX = legendPaddingX;
           currentY += legendLineHeight / 2;
-
           for (let i = 0; i < labels.length; i++) {
-            const label = labels[i];
-            const count = data[i];
-            const color = colors[i];
-            const percentage = ((count / totalSpins) * 100).toFixed(1);
-            const legendText = `${label}: ${count} spins (${percentage}%)`;
-
-            // Use the real context for measurement now
+            const legendText = `${labels[i]}: ${data[i]} spins (${((data[i] / totalSpins) * 100).toFixed(1)}%)`;
             const itemWidth =
               textOffset + ctx.measureText(legendText).width + itemMarginRight;
-
-            // Pre-calculation
             if (
               currentX > legendPaddingX &&
               currentX + itemWidth > legendMaxX
             ) {
-              currentY += legendLineHeight; // Move to the middle of the next row
-              currentX = legendPaddingX; // Reset X
+              currentY += legendLineHeight;
+              currentX = legendPaddingX;
             }
-
-            // Draw the small color box (vertically centered)
-            ctx.fillStyle = color;
-            ctx.fillRect(currentX, currentY - 7, 18, 14); // (14px height / 2 = 7)
-
-            // Draw the text next to the box
-            ctx.fillStyle = "#333"; // Back to black for text
+            ctx.fillStyle = colors[i];
+            ctx.fillRect(currentX, currentY - 7, 18, 14);
+            ctx.fillStyle = "#333";
             ctx.fillText(legendText, currentX + textOffset, currentY);
-
             currentX += itemWidth;
           }
-
           currentY += legendLineHeight / 2 + spaceBetweenLegendAndChart;
         }
 
@@ -2494,27 +2134,24 @@
           console.error("Error downloading chart:", error);
         }
       }
+
       function goBackToModeSelection() {
-        if (totalSpins > 0) {
-          if (
-            !confirm(
-              "Are you sure? This will abandon your current experiment progress and return to the mode selection screen."
-            )
-          ) {
-            return;
-          }
-        }
+        if (
+          totalSpins > 0 &&
+          !confirm(
+            "Are you sure? This will abandon your current experiment progress and return to the mode selection screen.",
+          )
+        )
+          return;
+
         sessionStorage.removeItem(STATE_KEY_EXPERIMENT);
         totalSpins = 0;
-        // currentGroupId is NOT reset here so they stay logged in
         allResultsData = {};
         clearSpinnerUI();
-        if (window["myResultsChart_chart"]) {
+        if (window["myResultsChart_chart"])
           window["myResultsChart_chart"].destroy();
-        }
-        if (window["combinedChart_chart"]) {
+        if (window["combinedChart_chart"])
           window["combinedChart_chart"].destroy();
-        }
 
         mainContent.style.display = "none";
         experimentContent.style.display = "none";
@@ -2522,99 +2159,14 @@
         chartPlaceholder.style.display = "flex";
         settingsContainer.style.display = "flex";
         resetBtn.style.display = "none";
-
-        settingsBtn.disabled = false; //Re-enable the start button
+        settingsBtn.disabled = false;
         maxSpinsInput.value = "20";
         liveMaxSpinsInput.value = "20";
-
         sliceDefinitionsContainer.innerHTML = "";
         numSlicesInput.value = "2";
         customSpinnerSetupDiv.style.display = "none";
-
         switchTab("my-experiment");
-
         modeSelectionDiv.style.display = "block";
-      }
-      welcomeStartBtn.addEventListener("click", initializeApp);
-
-      async function addGroupManually() {
-        const groupNameInput = document.getElementById("manual-group-name");
-        const groupName = groupNameInput.value.trim();
-        if (!groupName) {
-          alert("Please enter a Student ID.");
-          return;
-        }
-
-        // This local check is still fast and useful
-        if (allResultsData[groupName]) {
-          alert("A student with this ID already exists in the local table.");
-          return;
-        }
-
-        const manualInputs = document.querySelectorAll(".manual-color-input");
-        if (manualInputs.length === 0) {
-          alert(
-            "Spinner not defined yet. Please start your own experiment first."
-          );
-          return;
-        }
-
-        const results = {};
-        let totalAddedSpins = 0;
-        // Get the color order from the currently defined spinner
-        const colorOrder = Object.keys(chartColors);
-
-        manualInputs.forEach((input) => {
-          const colorKey = input.dataset.colorKey;
-          const count = Number(input.value) || 0;
-          results[colorKey] = count;
-          totalAddedSpins += count;
-        });
-
-        if (totalAddedSpins === 0) {
-          alert("Please enter at least one spin for one color.");
-          return;
-        }
-
-        // Disable button to prevent double-clicks
-        addGroupBtn.disabled = true;
-        addGroupBtn.textContent = "Saving...";
-
-        try {
-          // Send the new group data to the server
-          const response = await fetch("/api/add_manual_group", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              classroom_code: currentClassCode,
-              group_name: groupName,
-              results: results, // Send the summary object
-            }),
-          });
-
-          const data = await response.json();
-
-          if (!response.ok) {
-            // This will catch the "Group name already exists" error (409)
-            throw new Error(data.message || "Server error");
-          }
-          // Add to local state and table
-          allResultsData[groupName] = results;
-          appendRowToTable(groupName, results, colorOrder);
-
-          // Clear inputs
-          groupNameInput.value = "";
-          manualInputs.forEach((input) => {
-            input.value = "0";
-          });
-        } catch (error) {
-          console.error("Failed to add manual group:", error);
-          alert(`Error: ${error.message}`);
-        } finally {
-          // Re-enable button
-          addGroupBtn.disabled = false;
-          addGroupBtn.textContent = "Add Student";
-        }
       }
     </script>
   </body>
