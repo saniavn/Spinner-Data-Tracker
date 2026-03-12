@@ -1084,8 +1084,16 @@
         experimentContent.style.display = "flex";
         resetBtn.style.display = "inline-block";
         buttonContainer.classList.add("active");
-        settingsBtn.disabled = true;
 
+        settingsBtn.disabled = true; // Disable start button on reload
+
+        //Generate manual fields for "All Results" tab
+        generateManualEntryFields(chartColors);
+
+        // **Update the results table header to match**
+        updateResultsTableHeader(Object.keys(chartColors));
+
+        //Update UI with loaded data
         updateTally();
         showRealTimeResults();
       }
@@ -1177,12 +1185,8 @@
       deleteSelectedBtn.addEventListener("click", deleteSelectedRows);
       downloadAllBtn.addEventListener("click", downloadAllResultsCSV);
 
-      // Update manual entry fields automatically when dropdown changes
-      document
-        .getElementById("manual-setup-selector")
-        .addEventListener("change", updateManualFieldsFromSelection);
-
-      dynamicTablesContainer.addEventListener("change", (event) => {
+      // Dynamic update on checkbox change
+      resultsTable.addEventListener("change", (event) => {
         if (event.target.classList.contains("group-checkbox")) {
           combineSelectedResults();
         }
@@ -1267,6 +1271,8 @@
           resetBtn.style.display = "inline-block";
           buttonContainer.classList.add("active");
 
+          generateManualEntryFields(chartColors);
+
           showRealTimeResults();
           saveExperimentState();
           settingsBtn.disabled = true;
@@ -1304,186 +1310,210 @@
             throw new Error(`HTTP error! status: ${response.status}`);
           const data = await response.json();
 
-          dynamicTablesContainer.innerHTML = "";
-          allResultsData = {};
+          const tableBody = document.querySelector("#results-table tbody");
+          const tableContainer = document.querySelector(".table-container"); // Get the container
 
           if (!data.experiments || data.experiments.length === 0) {
-            dynamicTablesContainer.innerHTML =
-              '<p class="no-results">No students have recorded results yet.</p>';
-            fetchedExperiments = [];
+            tableBody.innerHTML =
+              '<tr><td colspan="100%">No students have recorded results yet.</td></tr>';
 
-            // Fallback: If DB is empty, but they have a local configuration loaded (e.g. they selected Fixed mode)
-            const localColorKeys = Object.keys(chartColors);
-            if (localColorKeys.length > 0) {
-              document.getElementById(
-                "manual-setup-selector-group",
-              ).style.display = "none";
-              generateManualEntryFields(chartColors);
+            // **Use the local signature if it exists, otherwise clear**
+            if (currentSignature) {
+              updateResultsTableHeader(localColorKeys);
             } else {
+              updateResultsTableHeader([]); // Clear header if no local signature
+            }
+
+            allResultsData = {}; // Clear data
+
+            // Keep manual entry disabled if no local spinner is defined
+            if (!currentSignature) {
               document.getElementById("dynamic-manual-inputs").innerHTML = "";
               document.getElementById("add-group-btn").disabled = true;
               document.getElementById("manual-entry-info").textContent =
                 'Define your spinner in "My Experiment" to enable manual entry.';
-              document.getElementById(
-                "manual-setup-selector-group",
-              ).style.display = "none";
             }
             return;
           }
 
-          fetchedExperiments = data.experiments;
+          //Decide which experiment group to display
+          let experimentToShow;
+          let infoMessage = "";
 
-          // Populate the Dropdown Selector for Manual Entry
-          const selectorGroup = document.getElementById(
-            "manual-setup-selector-group",
-          );
-          const selector = document.getElementById("manual-setup-selector");
-          selector.innerHTML = "";
-          selectorGroup.style.display = "block";
-
-          fetchedExperiments.forEach((exp) => {
-            const option = document.createElement("option");
-            option.value = exp.signature;
-            option.textContent = exp.colors
-              .map(getOriginalDisplayName)
-              .join(", ");
-            selector.appendChild(option);
-          });
-
-          // Pre-select logic: Prioritize their current local setup if it exists in the database
-          const localColorKeys = Object.keys(chartColors);
-          const currentSignature = localColorKeys.sort().join(",");
-          if (
-            currentSignature &&
-            fetchedExperiments.some((e) => e.signature === currentSignature)
-          ) {
-            selector.value = currentSignature;
+          if (currentSignature) {
+            // User has an active experiment. Try to find a match.
+            experimentToShow = data.experiments.find(
+              (exp) => exp.signature === currentSignature
+            );
+            if (!experimentToShow) {
+              // Match not found. Default to the first experiment in the list.
+              experimentToShow = data.experiments[0];
+              infoMessage = `Note: Your current experiment type has no history. Showing results for: ${experimentToShow.signature}`;
+            } else {
+              // Match found.
+              infoMessage = `Showing results for your current experiment type: ${experimentToShow.signature}`;
+            }
+          } else {
+            // User has not started an experiment. Default to the first one.
+            experimentToShow = data.experiments[0];
+            infoMessage = `Showing results for: ${experimentToShow.signature}. (Start your own experiment to see other types).`;
           }
 
-          // Generate the fields based on whatever is selected in the dropdown
-          updateManualFieldsFromSelection();
+          // Add an info message above the table to tell the user what they're seeing
+          const infoEl = document.createElement("p");
+          infoEl.id = "all-results-info";
+          infoEl.style.color = "#555";
+          infoEl.style.fontSize = "0.9em";
+          infoEl.style.textAlign = "left";
+          infoEl.style.marginBottom = "5px";
+          infoEl.textContent = infoMessage;
+          tableContainer.parentNode.insertBefore(infoEl, tableContainer);
 
-          data.experiments.forEach((exp) => {
-            const { signature, colors, results } = exp;
+          //Prepare the data for the table
+          const { signature, colors, results } = experimentToShow;
 
-            let resultsToDisplay = { ...results };
-            if (currentGroupId && signature === currentSignature) {
-              const hasSpins = Object.values(counts).some((v) => v > 0);
-              if (hasSpins) resultsToDisplay[currentGroupId] = counts;
-            }
-
-            if (Object.keys(resultsToDisplay).length === 0) return;
-
-            const tableWrapper = document.createElement("div");
-            tableWrapper.className = "table-wrapper";
-
-            const title = document.createElement("h3");
-            title.className = "table-title";
-            title.textContent = `Spinner Setup: ${colors.map(getOriginalDisplayName).join(", ")}`;
-            tableWrapper.appendChild(title);
-
-            const table = document.createElement("table");
-            table.className = "results-table";
-            table.dataset.signature = signature;
-
-            const thead = document.createElement("thead");
-            const trHead = document.createElement("tr");
-            trHead.innerHTML =
-              "<th>Select</th><th>Student ID</th><th>Total Spins</th>";
-            colors.forEach((color) => {
-              const th = document.createElement("th");
-              th.textContent = getOriginalDisplayName(color);
-              trHead.appendChild(th);
-            });
-            thead.appendChild(trHead);
-            table.appendChild(thead);
-
-            const tbody = document.createElement("tbody");
-            for (const groupId in resultsToDisplay) {
-              allResultsData[groupId] = resultsToDisplay[groupId];
-
-              const tr = document.createElement("tr");
-
-              const tdCheck = document.createElement("td");
-              const checkbox = document.createElement("input");
-              checkbox.type = "checkbox";
-              checkbox.className = "group-checkbox";
-              checkbox.dataset.groupId = groupId;
-              checkbox.dataset.signature = signature;
-              tdCheck.appendChild(checkbox);
-              tr.appendChild(tdCheck);
-
-              const tdId = document.createElement("td");
-              tdId.textContent = groupId;
-              tr.appendChild(tdId);
-
-              const tdTotal = document.createElement("td");
-              const total = Object.values(resultsToDisplay[groupId]).reduce(
-                (sum, count) => sum + count,
-                0,
-              );
-              tdTotal.textContent = total;
-              tr.appendChild(tdTotal);
-
-              colors.forEach((color) => {
-                const tdColor = document.createElement("td");
-                tdColor.textContent = resultsToDisplay[groupId][color] || 0;
-                tr.appendChild(tdColor);
-              });
-
-              tbody.appendChild(tr);
-            }
-            table.appendChild(tbody);
-            tableWrapper.appendChild(table);
-            dynamicTablesContainer.appendChild(tableWrapper);
+          const tempColorNameMap = {};
+          colors.forEach((colorKey) => {
+            // This assumes the key 'blue' should be displayed as 'Blue'
+            tempColorNameMap[colorKey] =
+              colorKey.charAt(0).toUpperCase() + colorKey.slice(1);
           });
 
-          if (currentGroupId) {
+          // Temporarily set the global map for the header function
+          const originalColorMap = colorDisplayNameMap;
+
+          // **If we are showing the user's *own* experiment, use their local map**
+          if (signature === currentSignature) {
+            // Use the local map, which has the correct capitalization/names
+            updateResultsTableHeader(localColorKeys);
+          } else {
+            // We are showing a *different* experiment, use the temporary map
+            colorDisplayNameMap = tempColorNameMap;
+            updateResultsTableHeader(colors);
+          }
+
+          if (!currentSignature) {
+            const tempChartColors = {};
+            const fixedColors = ACCESSIBLE_COLOR_PALETTE.map((c) => c);
+            colors.forEach((colorKey, index) => {
+              // Try to match by name
+              const found = fixedColors.find(
+                (c) => c.name.toLowerCase() === colorKey
+              );
+              if (found) {
+                tempChartColors[colorKey] = found.hex;
+              } else {
+                // Fallback to sequential colors
+                tempChartColors[colorKey] =
+                  fixedColors[index % fixedColors.length].hex;
+              }
+            });
+            // Set global chartColors *only if it's empty*
+            chartColors = tempChartColors;
+          }
+
+          //Merge local data IF it matches the displayed experiment
+          let resultsToDisplay = { ...results };
+          if (currentGroupId && signature === currentSignature) {
+            resultsToDisplay[currentGroupId] = counts;
+          }
+
+          //Fill the table
+          allResultsData = resultsToDisplay; // This global is now ready for combine/delete
+          tableBody.innerHTML = ""; // Clear old rows
+
+          let ownGroupFound = false;
+
+          for (const groupId in allResultsData) {
+            appendRowToTable(groupId, allResultsData[groupId], colors);
+            if (currentGroupId && groupId === currentGroupId) {
+              ownGroupFound = true;
+            }
+          }
+
+          // Enable manual entry if a local spinner is defined
+          if (currentSignature) {
+            generateManualEntryFields(chartColors);
+          } else {
+            // Make sure manual entry is disabled
+            document.getElementById("dynamic-manual-inputs").innerHTML = "";
+            document.getElementById("add-group-btn").disabled = true;
+            document.getElementById("manual-entry-info").textContent =
+              'Define your spinner in "My Experiment" to enable manual entry.';
+          }
+
+          //Auto-select current group and update combined chart
+          if (ownGroupFound) {
             const ownGroupCheckbox = document.querySelector(
-              `.group-checkbox[data-group-id="${currentGroupId}"]`,
+              `.group-checkbox[data-group-id="${currentGroupId}"]`
             );
-            if (ownGroupCheckbox) ownGroupCheckbox.checked = true;
+            if (ownGroupCheckbox) {
+              ownGroupCheckbox.checked = true;
+            }
           }
           combineSelectedResults();
+
+          // Restore the original color map in case the user goes back to "My Experiment"
+          colorDisplayNameMap = originalColorMap;
+          // If we didn't have an original map, clear chartColors so it can be rebuilt
+          if (!currentSignature) {
+            chartColors = {};
+          }
         } catch (error) {
           console.error("Failed to fetch all results:", error);
-          dynamicTablesContainer.innerHTML = `<p>Error loading results.</p>`;
+          document.querySelector(
+            "#results-table tbody"
+          ).innerHTML = `<tr><td colspan="100%">Error loading results.</td></tr>`;
         }
       }
 
-      function updateManualFieldsFromSelection() {
-        const selector = document.getElementById("manual-setup-selector");
-        if (!selector || !selector.value) return;
+      function updateResultsTableHeader(colors) {
+        const headerRow = document.querySelector("#results-table thead tr");
+        headerRow.innerHTML =
+          "<th>Select</th><th>Student ID</th><th>Total Spins</th>";
+        colors.forEach((color) => {
+          const th = document.createElement("th");
+          // Use the display name from the map if available, otherwise just capitalize the key
+          th.textContent =
+            colorDisplayNameMap[color] ||
+            color.charAt(0).toUpperCase() + color.slice(1);
+          headerRow.appendChild(th);
+        });
+      }
 
-        const selectedSignature = selector.value;
-        const exp = fetchedExperiments.find(
-          (e) => e.signature === selectedSignature,
+      // Append data to table
+      function appendRowToTable(groupId, results, colorOrder) {
+        const tableBody = document.querySelector("#results-table tbody");
+        const newRow = tableBody.insertRow();
+
+        const cellCheckbox = newRow.insertCell();
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "group-checkbox";
+        checkbox.dataset.groupId = groupId;
+        cellCheckbox.appendChild(checkbox);
+
+        newRow.insertCell().textContent = groupId;
+        newRow.insertCell().textContent = Object.values(results).reduce(
+          (sum, count) => sum + count,
+          0
         );
 
-        if (exp) {
-          const tempColorsMap = {};
-          // Maps the array of colors to an object so generateManualEntryFields can read keys
-          exp.colors.forEach((color) => {
-            tempColorsMap[color] = "#cccccc";
-          });
-          generateManualEntryFields(tempColorsMap);
-          document.getElementById("manual-entry-info").textContent =
-            "Adding data for the selected spinner setup.";
-        }
+        colorOrder.forEach((color) => {
+          newRow.insertCell().textContent = results[color] || 0;
+        });
       }
 
+      // download CSV
       function downloadAllResultsCSV() {
-        if (Object.keys(allResultsData).length === 0)
-          return alert("There is no data to download.");
-
-        const allColorsSet = new Set();
-        for (const groupId in allResultsData) {
-          Object.keys(allResultsData[groupId]).forEach((color) =>
-            allColorsSet.add(color),
-          );
+        if (Object.keys(allResultsData).length === 0) {
+          alert("There is no data to download.");
+          return;
         }
-        const colorOrder = Array.from(allColorsSet).sort();
 
+        // Determine headers from the first data entry
+        const firstGroupId = Object.keys(allResultsData)[0];
+        const colorOrder = Object.keys(allResultsData[firstGroupId]).sort();
         const headers = [
           "Student ID",
           "Total Spins",
@@ -1549,7 +1579,7 @@
 
         await Promise.all(deletionPromises);
         alert(`${selectedCheckboxes.length} student(s) have been deleted.`);
-        await fetchAllResults();
+        combineSelectedResults(); // Update the chart after deletion
       }
 
       function getOriginalDisplayName(key) {
@@ -1580,6 +1610,8 @@
           fieldGroup.appendChild(input);
           container.appendChild(fieldGroup);
         }
+        document.getElementById("manual-entry-info").textContent =
+          "Add data for another student using the same spinner configuration.";
         document.getElementById("add-group-btn").disabled = false;
       }
 
@@ -1591,9 +1623,9 @@
           return alert("A student with this ID already exists.");
 
         const manualInputs = document.querySelectorAll(".manual-color-input");
-        if (manualInputs.length === 0)
-          return alert(
-            "Spinner not defined yet. Please select a setup or start your own experiment first.",
+        if (manualInputs.length === 0) {
+          alert(
+            "Spinner not defined yet. Please start your own experiment first."
           );
 
         const results = {};
@@ -1606,34 +1638,12 @@
           totalAddedSpins += count;
         });
 
-        if (totalAddedSpins === 0)
-          return alert("Please enter at least one spin for one color.");
+        // Get the color order from the current chartColors keys
+        const colorOrder = Object.keys(chartColors);
 
-        addGroupBtn.disabled = true;
-        addGroupBtn.textContent = "Saving...";
-
-        try {
-          const response = await fetch("/api/add_manual_group", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              classroom_code: currentClassCode,
-              group_name: groupName,
-              results: results,
-            }),
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.message || "Server error");
-
-          await fetchAllResults(); // Refresh everything natively from backend
-          groupNameInput.value = "";
-          manualInputs.forEach((input) => (input.value = "0"));
-        } catch (error) {
-          alert(`Error: ${error.message}`);
-        } finally {
-          addGroupBtn.disabled = false;
-          addGroupBtn.textContent = "Add Student";
-        }
+        allResultsData[groupName] = results;
+        appendRowToTable(groupName, results, colorOrder); // Pass the correct order!
+        groupNameInput.value = "";
       }
 
       function combineSelectedResults() {
@@ -1651,25 +1661,17 @@
           return;
         }
 
-        const referenceSignature = selectedCheckboxes[0].dataset.signature;
-        const colorOrder = referenceSignature.split(",");
+        // Combine and validate selected groups
+        const firstGroupId = selectedCheckboxes[0].dataset.groupId;
+        const referenceSignature = Object.keys(
+          allResultsData[firstGroupId] || {}
+        )
+          .sort()
+          .join(",");
 
-        const dynamicChartColors = {};
-        colorOrder.forEach((color, index) => {
-          if (chartColors[color]) {
-            dynamicChartColors[color] = chartColors[color];
-          } else {
-            const found = ACCESSIBLE_COLOR_PALETTE.find(
-              (c) => c.name.toLowerCase() === color,
-            );
-            dynamicChartColors[color] = found
-              ? found.hex
-              : ACCESSIBLE_COLOR_PALETTE[
-                  index % ACCESSIBLE_COLOR_PALETTE.length
-                ].hex;
-          }
-        });
+        const colorOrder = Object.keys(chartColors);
 
+        // Initialize combinedCounts with all colors set to 0, in the correct order.
         const combinedCounts = {};
         colorOrder.forEach((color) => {
           combinedCounts[color] = 0;
@@ -1682,6 +1684,7 @@
           const groupId = checkbox.dataset.groupId;
           const currentSignature = checkbox.dataset.signature;
 
+          // Make sure users aren't crossing tables
           if (referenceSignature !== currentSignature) {
             alert(
               "Incompatible students selected. You can only combine results from the same spinner configuration. Unchecking the last selected.",
@@ -1733,13 +1736,7 @@
 
         const chartLabels = colorOrder;
         const chartData = colorOrder.map((color) => combinedCounts[color]);
-
-        createPieChart(
-          "combinedChart",
-          chartLabels,
-          chartData,
-          dynamicChartColors,
-        );
+        createPieChart("combinedChart", chartLabels, chartData);
       }
 
       function generateSliceInputFields() {
@@ -1985,6 +1982,7 @@
         }
         document.getElementById("my-results-text").innerHTML = resultsHTML;
 
+        // Update the Pie Chart
         createPieChart(
           "myResultsChart",
           Object.keys(counts),
@@ -2010,7 +2008,7 @@
         }
       }
 
-      function createPieChart(canvasId, labels, data, customColorsMap = null) {
+      function createPieChart(canvasId, labels, data) {
         const ctx = document.getElementById(canvasId).getContext("2d");
 
         if (window[canvasId + "_chart"]) window[canvasId + "_chart"].destroy();
@@ -2019,9 +2017,9 @@
           getOriginalDisplayName(labelKey),
         );
         const hasData = data.some((value) => value > 0);
-        if (!hasData) return;
-
-        const colorsToUse = customColorsMap || chartColors;
+        if (!hasData) {
+          return;
+        }
 
         window[canvasId + "_chart"] = new Chart(ctx, {
           type: "pie",
